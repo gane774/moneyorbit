@@ -1,0 +1,65 @@
+/* Scroll spacer creates the scrubbing distance; the SVG is sticky inside it.
+   Sticky rather than fixed so the animation is scoped to this section and
+   releases naturally when the section ends. */
+
+.section{
+  position:relative;
+  /* svh (small viewport height) rather than vh: it is stable when a mobile
+     URL bar shows and hides, so the scroll distance does not change under
+     the reader mid-scrub. vh is kept first as a fallback for older engines. */
+  height:1800vh;
+  height:1800svh;
+  background:var(--ink);
+
+  /* derived surfaces for the retokened SVG */
+  --flow-surface2:#22261A;
+  --flow-border:rgba(251,251,248,.16);
+}
+
+.sticky{
+  position:sticky;
+  top:0;
+  height:100vh;
+  height:100svh;
+  width:100%;
+  overflow:hidden;
+}
+
+.sticky svg{width:100%;height:100%;display:block}
+
+.btnInteractive{cursor:pointer;pointer-events:auto;transition:opacity .3s ease}
+.btnInteractive:hover{opacity:.85}
+
+/* reduced motion fallback */
+.reducedWrap{
+  background:var(--ink);
+  color:var(--paper);
+  padding:96px 24px;
+  text-align:center;
+}
+.reducedTitle{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(30px,6vw,54px);
+  line-height:1.05;
+  letter-spacing:-.02em;
+  max-width:18ch;
+  margin:0 auto;
+}
+.reducedBody{
+  margin:18px auto 0;
+  max-width:44ch;
+  font-size:17px;
+  color:var(--paper-60);
+}
+.reducedCta{
+  margin-top:32px;
+  padding:14px 28px;
+  border-radius:11px;
+  border:none;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:inherit;
+  font-weight:600;
+  font-size:15px;
+}
