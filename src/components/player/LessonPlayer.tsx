@@ -12,6 +12,7 @@ import { allocateTokens, choiceFastforwardTokens, compareIncomeTokens, emiTokens
 import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
 import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
 import type { FlowTraceParams } from '@/content/experiences/j04-banking';
+import type { ParallelShockParams } from '@/content/experiences/j05-saving';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 import * as P from '@/lib/progress';
@@ -23,6 +24,7 @@ import AllocateEvents from './mechanics/AllocateEvents';
 import ChoiceFastforward from './mechanics/ChoiceFastforward';
 import CompareIncome from './mechanics/CompareIncome';
 import FlowTrace from './mechanics/FlowTrace';
+import ParallelShock from './mechanics/ParallelShock';
 import EmiSlider from './mechanics/EmiSlider';
 import PlaceholderMechanic from './mechanics/PlaceholderMechanic';
 
@@ -183,6 +185,12 @@ export default function LessonPlayer({
     ) : experience.mechanicType === 'flow-trace' ? (
       <FlowTrace
         params={variant.params as unknown as FlowTraceParams}
+        labels={copy.interact.labels}
+        onExplored={onExplored}
+      />
+    ) : experience.mechanicType === 'parallel-shock' ? (
+      <ParallelShock
+        params={variant.params as unknown as ParallelShockParams}
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
