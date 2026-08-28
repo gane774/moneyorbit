@@ -1,5 +1,6 @@
 import { compound, computeLoan, inr } from './money';
 import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
+import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 
@@ -112,5 +113,23 @@ export function choiceFastforwardTokens(p: ChoiceFastforwardParams): Record<stri
     landingAge: String(p.landingAge),
     fv: inr(fv),
     growth: inr(fv - p.itemCost),
+  };
+}
+
+/** Derived figures for the compare-income mechanic (J2). */
+export function compareIncomeTokens(p: CompareIncomeParams): Record<string, string> {
+  const kabirMonthly = p.active.hourlyRate * p.active.hoursPerWeek * p.active.weeksPerMonth;
+  const zaraMonthly = (p.passive.principal * p.passive.ratePct) / 100 / 12;
+  return {
+    kabirName: p.active.name,
+    kabirTask: p.active.task,
+    kabirRate: inr(p.active.hourlyRate),
+    kabirHours: String(p.active.hoursPerWeek),
+    kabirWeeks: String(p.active.weeksPerMonth),
+    kabirMonthly: inr(kabirMonthly),
+    zaraName: p.passive.name,
+    zaraPrincipal: inr(p.passive.principal),
+    zaraRate: `${p.passive.ratePct}%`,
+    zaraMonthly: inr(zaraMonthly),
   };
 }

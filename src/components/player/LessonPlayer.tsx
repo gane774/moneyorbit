@@ -8,8 +8,9 @@ import {
 } from '@/content/types';
 import { JOURNEY_BY_ID, nextJourney } from '@/content/journeys';
 import { variantFor } from '@/content/experiences';
-import { allocateTokens, choiceFastforwardTokens, emiTokens } from '@/lib/tokens';
+import { allocateTokens, choiceFastforwardTokens, compareIncomeTokens, emiTokens } from '@/lib/tokens';
 import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
+import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 import * as P from '@/lib/progress';
@@ -19,6 +20,7 @@ import {
 } from './Screens';
 import AllocateEvents from './mechanics/AllocateEvents';
 import ChoiceFastforward from './mechanics/ChoiceFastforward';
+import CompareIncome from './mechanics/CompareIncome';
 import EmiSlider from './mechanics/EmiSlider';
 import PlaceholderMechanic from './mechanics/PlaceholderMechanic';
 
@@ -86,6 +88,9 @@ export default function LessonPlayer({
     }
     if (experience.mechanicType === 'choice-fastforward' && variant) {
       return choiceFastforwardTokens(variant.params as unknown as ChoiceFastforwardParams);
+    }
+    if (experience.mechanicType === 'compare-income' && variant) {
+      return compareIncomeTokens(variant.params as unknown as CompareIncomeParams);
     }
     return {};
   }, [experience.mechanicType, variant, allocation]);
@@ -164,6 +169,12 @@ export default function LessonPlayer({
     ) : experience.mechanicType === 'choice-fastforward' ? (
       <ChoiceFastforward
         params={variant.params as unknown as ChoiceFastforwardParams}
+        labels={copy.interact.labels}
+        onExplored={onExplored}
+      />
+    ) : experience.mechanicType === 'compare-income' ? (
+      <CompareIncome
+        params={variant.params as unknown as CompareIncomeParams}
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
