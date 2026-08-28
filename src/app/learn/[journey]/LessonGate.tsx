@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Experience } from '@/content/types';
 import { isAvailable } from '@/content/experiences';
+import { fetchOverride, applyOverride } from '@/lib/contentOverride';
 import * as P from '@/lib/progress';
 import LessonPlayer from '@/components/player/LessonPlayer';
 
@@ -12,12 +13,19 @@ import LessonPlayer from '@/components/player/LessonPlayer';
 export default function LessonGate({ experience }: { experience: Experience }) {
   const router = useRouter();
   const [state, setState] = useState<P.ProgressState | null>(null);
+  /* Starts as the compiled experience so the lesson is renderable even if the
+     override request never resolves. A published override replaces it. */
+  const [live, setLive] = useState<Experience>(experience);
 
   useEffect(() => {
     const p = P.load();
     if (!p.username) { router.replace('/onboarding'); return; }
     setState(p);
-  }, [router]);
+    (async () => {
+      const ov = await fetchOverride(experience.id, p.ageBand);
+      if (ov) setLive(applyOverride(experience, p.ageBand, ov));
+    })();
+  }, [router, experience]);
 
   if (!state) return <main className="player"><div className="stage" /></main>;
 
@@ -40,5 +48,5 @@ export default function LessonGate({ experience }: { experience: Experience }) {
     );
   }
 
-  return <LessonPlayer experience={experience} band={state.ageBand} />;
+  return <LessonPlayer experience={live} band={state.ageBand} />;
 }

@@ -116,9 +116,12 @@ export default function AdminDashboard() {
           <div className={styles.brand}>MoneyOrbit</div>
           <div className={styles.sub}>Admin · refreshes every {REFRESH_MS / 1000}s</div>
         </div>
-        <button className={styles.link} onClick={async () => { await signOut(); router.replace('/admin/login'); }}>
-          Sign out
-        </button>
+        <div style={{ display: 'flex', gap: 16 }}>
+          <button className={styles.link} onClick={() => router.push('/admin/content')}>Content</button>
+          <button className={styles.link} onClick={async () => { await signOut(); router.replace('/admin/login'); }}>
+            Sign out
+          </button>
+        </div>
       </div>
 
       {noData ? (
