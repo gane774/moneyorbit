@@ -213,6 +213,45 @@ input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--indigo
 .legend{display:flex;gap:14px;font-size:11.5px;color:var(--ink-60);flex-wrap:wrap}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
 
+/* ---------- interact: allocate rows (Section 6, allocate-events) ---------- */
+
+.alloc-hero{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin-bottom:10px;
+}
+.alloc-hero span{font-size:12.5px;color:var(--ink-60)}
+.alloc-hero b{
+  font-family:var(--font-mono);font-size:22px;font-weight:500;color:var(--ink);
+  font-variant-numeric:tabular-nums;
+}
+.alloc-hero b.done{color:var(--good)}
+
+.alloc-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 0;border-bottom:1px solid var(--ink-12);gap:12px;
+}
+.alloc-row:last-of-type{border-bottom:none}
+.alloc-row .al{flex:1;min-width:0}
+.alloc-row .at{font-size:13.5px;font-weight:500;color:var(--ink)}
+.alloc-row .ae{
+  display:inline-block;margin-left:7px;font-family:var(--font-mono);font-size:9.5px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--ink-35);
+  border:1px solid var(--ink-12);border-radius:99px;padding:1.5px 6px;vertical-align:1px;
+}
+
+.stepper{display:flex;align-items:center;gap:9px;flex:0 0 auto}
+.stepper button{
+  width:28px;height:28px;border-radius:50%;border:1.5px solid var(--ink-12);
+  background:var(--paper);font-size:15px;line-height:1;color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+}
+.stepper button:active{background:var(--ink-12)}
+.stepper button:disabled{opacity:.3}
+.stepper .av{
+  font-family:var(--font-mono);font-size:13.5px;font-weight:500;color:var(--ink);
+  min-width:60px;text-align:right;font-variant-numeric:tabular-nums;
+}
+
 /* ---------- choice cards ---------- */
 
 .choice{

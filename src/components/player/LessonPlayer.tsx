@@ -16,6 +16,7 @@ import { TopBar } from './PlayerChrome';
 import {
   DecideScreen, ExplainScreen, FeedbackScreen, HookScreen, InteractScreen, PracticeScreen,
 } from './Screens';
+import AllocateEvents from './mechanics/AllocateEvents';
 import EmiSlider from './mechanics/EmiSlider';
 import PlaceholderMechanic from './mechanics/PlaceholderMechanic';
 
@@ -33,6 +34,8 @@ export default function LessonPlayer({
   const [index, setIndex] = useState(0);
   const [decision, setDecision] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  /* Only used by allocate-events; harmless to hold for other mechanics. */
+  const [allocation, setAllocation] = useState<Record<string, number>>({});
 
   /* Resume an interrupted lesson rather than restarting it. */
   useEffect(() => {
@@ -66,10 +69,21 @@ export default function LessonPlayer({
       return emiTokens(variant.params as unknown as EmiParams);
     }
     if (experience.mechanicType === 'allocate-events' && variant) {
-      return allocateTokens(variant.params as unknown as AllocateParams);
+      // Only a COMMITTING Decide screen (no options — the CTA press itself
+      // is the decision, e.g. J3's 12-14 and 17-18) evaluates the plan the
+      // student actually built in Interact. A BRANCHING Decide screen (has
+      // options, e.g. J3's 15-16 "next month, which strategy?") presents its
+      // own fixed hypothetical independent of the Interact warm-up — wiring
+      // the real allocation in there would leak practice-round numbers into
+      // a comparison that is supposed to hold both amounts fixed.
+      const committing = !variant.copy.decide.options?.length;
+      return allocateTokens(
+        variant.params as unknown as AllocateParams,
+        committing ? allocation : undefined,
+      );
     }
     return {};
-  }, [experience.mechanicType, variant]);
+  }, [experience.mechanicType, variant, allocation]);
 
   if (!variant) {
     return (
@@ -132,6 +146,14 @@ export default function LessonPlayer({
       <EmiSlider
         params={variant.params as unknown as EmiParams}
         labels={copy.interact.labels}
+        onExplored={onExplored}
+      />
+    ) : experience.mechanicType === 'allocate-events' ? (
+      <AllocateEvents
+        params={variant.params as unknown as AllocateParams}
+        labels={copy.interact.labels}
+        allocation={allocation}
+        onAllocationChange={setAllocation}
         onExplored={onExplored}
       />
     ) : (

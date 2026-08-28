@@ -47,14 +47,28 @@ export function emiTokens(p: EmiParams): Record<string, string> {
  * If an author retunes the pool or the events, the Feedback screen follows
  * automatically instead of quietly stating a day that is no longer true.
  */
-export function allocateTokens(p: AllocateParams): Record<string, string> {
+/**
+ * `actual` is the student's real allocation from the mechanic (category id
+ * -> amount). Omit it to fall back to the params' suggested split — used
+ * only by scripts/tools that check an experience's math before the mechanic
+ * has run. In the app, LessonPlayer always passes the real allocation, so
+ * Feedback reflects what the student actually did, not the reference split
+ * shown as a hint on the Interact screen.
+ */
+export function allocateTokens(
+  p: AllocateParams,
+  actual?: Record<string, number>,
+): Record<string, string> {
+  const amountFor = (categoryId: string, suggested: number) =>
+    actual ? (actual[categoryId] ?? 0) : suggested;
+
   const eventsTotal = p.events.reduce((sum, e) => sum + e.amount, 0);
   const setAside = p.categories
     .filter((c) => c.id === 'aside')
-    .reduce((sum, c) => sum + c.suggested, 0);
+    .reduce((sum, c) => sum + amountFor(c.id, c.suggested), 0);
   const essentials = p.categories
     .filter((c) => c.essential)
-    .reduce((sum, c) => sum + c.suggested, 0);
+    .reduce((sum, c) => sum + amountFor(c.id, c.suggested), 0);
 
   // The head-tracking path: only the "set aside" pot absorbs surprises.
   // Walk events in date order and find where it runs dry.
