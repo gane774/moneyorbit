@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { JOURNEYS, TOTAL_JOURNEYS } from '@/content/journeys';
 import { experienceForJourney, isAvailable } from '@/content/experiences';
 import * as P from '@/lib/progress';
+import { signOut } from '@/lib/auth';
+import { pushProgress, pullProgress } from '@/lib/sync';
 import DenominationStrip from '@/components/DenominationStrip';
 
 function greeting(d = new Date()): string {
@@ -24,6 +26,14 @@ export default function Home() {
     const s = P.load();
     if (!s.username) { router.replace('/onboarding'); return; }
     setP(s);
+    /* Reconcile with the account: this device may be behind another one.
+       pull() merges rather than replaces, then push() sends anything this
+       device has that the account does not. */
+    (async () => {
+      await pullProgress();
+      await pushProgress();
+      setP(P.load());
+    })();
   }, [router]);
 
   if (!p) return <main className="sheet" />;
@@ -36,7 +46,19 @@ export default function Home() {
 
   return (
     <main className="sheet">
-      <div className="kicker" style={{ color: 'var(--ink-35)' }}>{greeting()}</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
+        <div className="kicker" style={{ color: 'var(--ink-35)' }}>{greeting()}</div>
+        <button
+          onClick={async () => { await pushProgress(); await signOut(); P.clear(); router.replace('/login'); }}
+          style={{
+            background: 'none', border: 'none', padding: 0, cursor: 'pointer',
+            fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '.1em',
+            textTransform: 'uppercase', color: 'var(--ink-35)',
+          }}
+        >
+          Sign out
+        </button>
+      </div>
       <h1 className="h-mid" style={{ marginBottom: 4 }}>
         {p.completed.length === 0 ? `Welcome, ${p.fullName.split(' ')[0]}.` : `Welcome back, ${p.fullName.split(' ')[0]}.`}
       </h1>

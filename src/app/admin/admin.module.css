@@ -1,0 +1,58 @@
+/* Admin surface. Deliberately denser and plainer than the student UI: the
+   student dashboard exists to motivate, this one exists to be read quickly. */
+
+.wrap{max-width:1120px;margin:0 auto;padding:28px 22px 70px}
+
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin-bottom:26px}
+.brand{font-family:var(--font-display);font-weight:800;font-size:19px;letter-spacing:-.02em}
+.sub{font-family:var(--font-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-35)}
+.link{background:none;border:none;padding:0;cursor:pointer;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-35)}
+.link:hover{color:var(--ink)}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:34px}
+.card{border:1px solid var(--ink-12);border-radius:12px;padding:15px;background:var(--paper)}
+.cardN{font-family:var(--font-mono);font-size:28px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1}
+.cardL{font-size:12px;color:var(--ink-60);margin-top:5px;line-height:1.3}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+
+.panel{margin-bottom:34px}
+.panelH{font-family:var(--font-display);font-weight:700;font-size:15.5px;margin-bottom:4px}
+.panelS{font-size:12.5px;color:var(--ink-60);margin-bottom:14px}
+
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th{
+  text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-35);font-weight:400;
+  padding:7px 9px;border-bottom:1px solid var(--ink-12);
+}
+.table td{padding:9px;border-bottom:1px solid var(--ink-12);vertical-align:middle}
+.table tbody tr:hover{background:rgba(21,24,15,.03)}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right}
+.rowBtn{cursor:pointer}
+
+.bar{height:6px;border-radius:99px;background:var(--ink-12);overflow:hidden;min-width:70px}
+.barFill{height:100%;background:var(--indigo);border-radius:99px}
+.barFill.warn{background:var(--danger)}
+
+.feed{border:1px solid var(--ink-12);border-radius:12px;overflow:hidden;background:var(--paper)}
+.feedRow{display:flex;justify-content:space-between;gap:12px;padding:10px 13px;border-bottom:1px solid var(--ink-12);font-size:13px}
+.feedRow:last-child{border-bottom:none}
+.feedTime{font-family:var(--font-mono);font-size:11px;color:var(--ink-35);flex:0 0 auto}
+
+.empty{
+  border:1px dashed var(--ink-12);border-radius:12px;padding:34px 20px;text-align:center;
+  color:var(--ink-60);font-size:13.5px;line-height:1.55;
+}
+
+.detail{border:1px solid var(--ink-12);border-radius:12px;background:var(--paper);padding:18px;margin-bottom:18px}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px solid var(--ink-12);font-size:13.5px}
+.kv:last-child{border-bottom:none}
+.kv b{font-family:var(--font-mono);font-weight:500}
+.back{background:none;border:none;padding:0;cursor:pointer;font-size:13px;color:var(--ink-60);margin-bottom:16px}
+
+.pill{
+  display:inline-block;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;padding:2px 7px;border-radius:99px;border:1px solid var(--ink-12);color:var(--ink-60);
+}
