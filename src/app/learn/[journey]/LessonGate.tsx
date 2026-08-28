@@ -29,7 +29,7 @@ export default function LessonGate({ experience }: { experience: Experience }) {
             <div className="kicker">Not yet</div>
             <h2 className="h-mid">This one opens up a bit later.</h2>
             <p className="body-s">
-              {experience.title} covers borrowing decisions written for 15 and above.
+              {experience.title} is written for age 15 and above.
               Everything else in the course is open to you now.
             </p>
             <div className="spacer" />

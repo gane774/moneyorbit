@@ -2,6 +2,7 @@ import { compound, computeLoan, inr } from './money';
 import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
 import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
 import type { CompoundCurveParams } from '@/content/experiences/j07-math';
+import type { AllocatePortfolioParams } from '@/content/experiences/j08-investing';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 
@@ -158,5 +159,22 @@ export function compoundCurveTokens(p: CompoundCurveParams): Record<string, stri
     fvEarlier: inr(fvEarlier),
     fvBetterRate: inr(fvBetterRate),
     inflation: `${p.inflation}%`,
+  };
+}
+
+/** Derived figures for the allocate-portfolio mechanic (J8). Static per
+ *  params — the randomized run outcomes live in the mechanic itself, not
+ *  here, since Decide/Feedback describe the buckets, not one specific run. */
+export function allocatePortfolioTokens(p: AllocatePortfolioParams): Record<string, string> {
+  const range = (id: string) => {
+    const b = p.buckets.find((x) => x.id === id)!;
+    return `${b.minReturn}% to ${b.maxReturn}%`;
+  };
+  return {
+    principal: inr(p.principal),
+    years: String(p.years),
+    safeRange: range('safe'),
+    balancedRange: range('balanced'),
+    riskyRange: range('risky'),
   };
 }

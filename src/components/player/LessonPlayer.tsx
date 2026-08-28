@@ -9,12 +9,14 @@ import {
 import { JOURNEY_BY_ID, nextJourney } from '@/content/journeys';
 import { variantFor } from '@/content/experiences';
 import {
-  allocateTokens, choiceFastforwardTokens, compareIncomeTokens, compoundCurveTokens, emiTokens,
+  allocateTokens, allocatePortfolioTokens, choiceFastforwardTokens, compareIncomeTokens, compoundCurveTokens,
+  emiTokens,
 } from '@/lib/tokens';
 import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
 import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
 import type { FlowTraceParams } from '@/content/experiences/j04-banking';
 import type { ParallelShockParams } from '@/content/experiences/j05-saving';
+import type { AllocatePortfolioParams } from '@/content/experiences/j08-investing';
 import type { CompoundCurveParams } from '@/content/experiences/j07-math';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
@@ -27,6 +29,7 @@ import AllocateEvents from './mechanics/AllocateEvents';
 import ChoiceFastforward from './mechanics/ChoiceFastforward';
 import CompareIncome from './mechanics/CompareIncome';
 import FlowTrace from './mechanics/FlowTrace';
+import AllocatePortfolio from './mechanics/AllocatePortfolio';
 import CompoundCurve from './mechanics/CompoundCurve';
 import ParallelShock from './mechanics/ParallelShock';
 import EmiSlider from './mechanics/EmiSlider';
@@ -102,6 +105,9 @@ export default function LessonPlayer({
     }
     if (experience.mechanicType === 'compound-curve' && variant) {
       return compoundCurveTokens(variant.params as unknown as CompoundCurveParams);
+    }
+    if (experience.mechanicType === 'allocate-portfolio' && variant) {
+      return allocatePortfolioTokens(variant.params as unknown as AllocatePortfolioParams);
     }
     return {};
   }, [experience.mechanicType, variant, allocation]);
@@ -204,6 +210,12 @@ export default function LessonPlayer({
     ) : experience.mechanicType === 'compound-curve' ? (
       <CompoundCurve
         params={variant.params as unknown as CompoundCurveParams}
+        labels={copy.interact.labels}
+        onExplored={onExplored}
+      />
+    ) : experience.mechanicType === 'allocate-portfolio' ? (
+      <AllocatePortfolio
+        params={variant.params as unknown as AllocatePortfolioParams}
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
