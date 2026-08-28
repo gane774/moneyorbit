@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react';
 import { computeLoan, inr } from '@/lib/money';
+import type { MechanicProps } from '@/content/types';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 
 /**
@@ -10,15 +11,13 @@ import type { EmiParams } from '@/content/experiences/j06-credit';
  * in the credit-card lesson and again in compounding; it is doing teaching
  * work, not decoration.
  */
+/** Engagement bar (MechanicProps): any slider has moved once. Seeing the
+ *  interest bar react to a change IS the lesson, so one movement is enough. */
 export default function EmiSlider({
   params,
   labels,
   onExplored,
-}: {
-  params: EmiParams;
-  labels?: Record<string, string>;
-  onExplored?: () => void;
-}) {
+}: MechanicProps & { params: EmiParams }) {
   const uid = useId();
   const [amount, setAmount] = useState(params.amount.default);
   const [rate, setRate] = useState(params.rate.default);
@@ -30,7 +29,7 @@ export default function EmiSlider({
   const touch = () => {
     if (!touched) {
       setTouched(true);
-      onExplored?.();
+      onExplored();
     }
   };
 

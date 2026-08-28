@@ -1,44 +1,64 @@
 'use client';
 
-import type { MechanicType } from '@/content/types';
+import type { MechanicProps, MechanicType } from '@/content/types';
 
 /** Stands in until each mechanic is built. Keeps the 11-journey flow
  *  walkable end to end, and never pretends to be finished content. */
-/* No onExplored prop: InteractScreen decides "explored" from real pointer,
-   key and input events on its wrapper, so this button unlocks the CTA the
-   same way a slider does. A prop here would be dead code implying a
-   contract that does not exist. */
+/**
+ * Stands in until each mechanic is built.
+ *
+ * Must be impossible to mistake for a finished screen, including when it
+ * sits directly beside authored copy — which is now the normal case, since
+ * an experience can have real copy for one age band and none for another.
+ * So it states what it is in words rather than paraphrasing the headline.
+ *
+ * Engagement bar: the explicit acknowledgement button. There is no real
+ * interaction to gate on yet.
+ */
 export default function PlaceholderMechanic({
   mechanicType,
-  note,
-}: {
-  mechanicType: MechanicType;
-  note: string;
-}) {
+  onExplored,
+}: MechanicProps & { mechanicType: MechanicType }) {
   return (
     <div
       style={{
-        border: '1px dashed var(--ink-12)',
+        border: '1px dashed var(--danger)',
         borderRadius: 12,
         padding: 18,
-        background: 'rgba(21,24,15,.02)',
+        background: 'rgba(178,58,46,.05)',
       }}
     >
       <div
         style={{
           fontFamily: 'var(--font-mono)',
-          fontSize: 10,
-          letterSpacing: '.12em',
+          fontSize: 11,
+          letterSpacing: '.1em',
           textTransform: 'uppercase',
-          color: 'var(--ink-35)',
-          marginBottom: 10,
+          color: 'var(--danger)',
+          fontWeight: 600,
+          marginBottom: 8,
         }}
       >
-        Mechanic · {mechanicType}
+        [Placeholder — pending content]
       </div>
-      <p style={{ fontSize: 14.5, lineHeight: 1.5, color: 'var(--ink-60)' }}>{note}</p>
-      <button className="btn ghost" style={{ marginTop: 16 }} type="button">
-        Simulate interaction
+      <p
+        style={{
+          fontFamily: 'var(--font-mono)',
+          fontSize: 12,
+          lineHeight: 1.5,
+          color: 'var(--ink-60)',
+        }}
+      >
+        The <b>{mechanicType}</b> mechanic has not been built. Nothing on this
+        panel is finished content.
+      </p>
+      <button
+        className="btn ghost"
+        style={{ marginTop: 16 }}
+        type="button"
+        onClick={onExplored}
+      >
+        Skip the interaction
       </button>
     </div>
   );

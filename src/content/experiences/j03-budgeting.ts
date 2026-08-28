@@ -1,4 +1,5 @@
 import type { Experience, ScreenCopy } from '../types';
+import { makeCopy } from './placeholders';
 
 /**
  * REFERENCE IMPLEMENTATION #2 (Section 6).
@@ -177,6 +178,65 @@ const copy1516: ScreenCopy = {
   },
 };
 
+/* ------------------------------------------------------------------
+   12-14 and 17-18: params are real so the mechanic and every derived
+   figure work today. Only the SCREEN COPY is outstanding, and it is
+   the standard placeholder so it cannot be mistaken for finished text
+   sitting next to the authored 15-16 script.
+   ------------------------------------------------------------------ */
+
+/** Pocket money. Same interaction, same shocks-to-pool ratio as 15-16. */
+const params1214: AllocateParams = {
+  pool: 1_000,
+  month: 'March',
+  categories: [
+    { id: 'phone',     label: 'Phone top-up',    suggested: 100, essential: true  },
+    { id: 'food',      label: 'Canteen & snacks', suggested: 300, essential: true  },
+    { id: 'transport', label: 'Bus fare',        suggested: 150, essential: true  },
+    { id: 'going-out', label: 'Going out',       suggested: 200, essential: false },
+    { id: 'stuff',     label: 'Games & stationery', suggested: 150, essential: false },
+    { id: 'aside',     label: 'Set aside',       suggested: 100, essential: false },
+  ],
+  events: [
+    { id: 'ev1', day: 6,  label: 'School project materials', amount: 60 },
+    { id: 'ev2', day: 13, label: "Friend's birthday gift",   amount: 80 },
+    { id: 'ev3', day: 21, label: 'Lost water bottle',        amount: 120 },
+  ],
+  bufferTarget: 200,
+};
+
+/** First salary. The categories change because the life does. */
+const params1718: AllocateParams = {
+  pool: 35_000,
+  month: 'March',
+  categories: [
+    { id: 'rent',      label: 'Rent share',        suggested: 9_000, essential: true  },
+    { id: 'food',      label: 'Food & groceries',  suggested: 7_000, essential: true  },
+    { id: 'transport', label: 'Commute',           suggested: 3_000, essential: true  },
+    { id: 'phone',     label: 'Phone & internet',  suggested: 1_000, essential: true  },
+    { id: 'going-out', label: 'Going out',         suggested: 4_500, essential: false },
+    { id: 'shopping',  label: 'Clothes & shopping', suggested: 3_500, essential: false },
+    { id: 'subs',      label: 'Subscriptions',     suggested: 1_000, essential: false },
+    { id: 'aside',     label: 'Set aside',         suggested: 6_000, essential: false },
+  ],
+  events: [
+    { id: 'ev1', day: 6,  label: 'Dentist visit',        amount: 1_800 },
+    { id: 'ev2', day: 13, label: "Friend's wedding gift", amount: 2_500 },
+    { id: 'ev3', day: 21, label: 'Cracked phone screen',  amount: 4_800 },
+  ],
+  bufferTarget: 7_000,
+};
+
+const PENDING_COPY: ScreenCopy = makeCopy({
+  id: 'e03', journeyId: 'j03', slug: 'can-you-survive-the-month',
+  title: 'Can You Survive the Month?',
+  mechanicType: 'allocate-events',
+  concepts: ['budgeting', 'cash-flow', 'needs-vs-wants'],
+  misconception: "I'll just track it in my head.",
+  mechanicNote: 'Allocate a monthly amount, then random mid-month events hit.',
+  vocabTerm: 'Cash flow',
+});
+
 export const J03_BUDGETING: Experience = {
   id: 'e03',
   journeyId: 'j03',
@@ -188,6 +248,8 @@ export const J03_BUDGETING: Experience = {
   concepts: ['budgeting', 'cash-flow', 'needs-vs-wants'],
   availableTo: ['12-14', '15-16', '17-18'],
   ageVariants: {
+    '12-14': { params: params1214 as unknown as Record<string, unknown>, copy: PENDING_COPY },
     '15-16': { params: params1516 as unknown as Record<string, unknown>, copy: copy1516 },
+    '17-18': { params: params1718 as unknown as Record<string, unknown>, copy: PENDING_COPY },
   },
 };

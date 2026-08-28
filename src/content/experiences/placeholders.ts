@@ -15,7 +15,7 @@ import {
  * player can both make it visually obvious that this is not final text.
  */
 
-interface Spec {
+export interface Spec {
   id: string;
   journeyId: string;
   slug: string;
@@ -31,7 +31,7 @@ interface Spec {
   params?: Record<string, unknown>;
 }
 
-function makeCopy(s: Spec): ScreenCopy {
+export function makeCopy(s: Spec): ScreenCopy {
   return {
     hook: {
       kicker: `${P} Before we start`,
@@ -54,6 +54,7 @@ function makeCopy(s: Spec): ScreenCopy {
       kicker: `${P} ${s.title}`,
       headline: `${P} ${s.mechanicNote}`,
       cta: `${P} I see it`,
+      lockedCta: LOCKED_CTA[s.mechanicType],
     },
     decide: {
       kicker: `${P} Your call`,
@@ -110,6 +111,26 @@ function build(s: Spec): Experience {
     ),
   };
 }
+
+/**
+ * The pre-engagement nudge, per mechanic. These are authored (not
+ * [PLACEHOLDER]-prefixed) because the correct wording follows from the
+ * interaction itself and is knowable before the copy is written — and a
+ * student should never be told to "move a slider" on a drag-and-drop screen.
+ */
+const LOCKED_CTA: Record<MechanicType, string> = {
+  'choice-fastforward': 'Pick one, then fast-forward',
+  'compare-income':     'Compare both ways',
+  'allocate-events':    'Assign every rupee first',
+  'flow-trace':         'Follow the money',
+  'parallel-shock':     'Run the shock',
+  'emi-slider':         'Try moving a slider',
+  'compound-curve':     'Change something and watch',
+  'allocate-portfolio': 'Fill all three, then run it twice',
+  'match-goal':         'Match every goal',
+  'goal-planner':       'Add a goal to begin',
+  'spot-scam':          'Read each offer carefully',
+};
 
 const SPECS: Spec[] = [
   {

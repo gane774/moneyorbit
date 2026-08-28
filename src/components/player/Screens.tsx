@@ -65,8 +65,13 @@ export function ExplainScreen({ copy, tokens, placeholder, onNext }: Base & { co
    has actually moved something — reading the simulator is not using it. */
 
 export function InteractScreen({
-  copy, tokens, placeholder, onNext, children,
-}: Base & { copy: InteractCopy; children: React.ReactNode }) {
+  copy, tokens, placeholder, onNext, renderMechanic,
+}: Base & {
+  copy: InteractCopy;
+  /** Receives the callback the mechanic must invoke when its own
+   *  engagement bar is met. See MechanicProps for the per-mechanic rule. */
+  renderMechanic: (onExplored: () => void) => React.ReactNode;
+}) {
   const [explored, setExplored] = useState(false);
 
   return (
@@ -75,20 +80,15 @@ export function InteractScreen({
       <Kicker>{T(copy.kicker, tokens)}</Kicker>
       <h2 className="h-mid" style={{ marginBottom: 16 }}>{rich(T(copy.headline, tokens))}</h2>
 
-      {/* "Explored" means a value actually changed, not that a pointer went
-          down — so this also unlocks for keyboard and assistive-tech users
-          who adjust a slider without ever generating a pointer event. */}
-      <div
-        onInputCapture={() => setExplored(true)}
-        onPointerDownCapture={() => setExplored(true)}
-        onKeyDownCapture={() => setExplored(true)}
-      >
-        {children}
-      </div>
+      {/* No DOM-level heuristic here on purpose. Unlocking on "a pointer went
+          down somewhere" lets an accidental tap open the Decide screen to a
+          student who has understood nothing. Each mechanic owns its own
+          definition of engagement and says so explicitly. */}
+      <div>{renderMechanic(() => setExplored(true))}</div>
 
       <div className="spacer" />
       <button className="btn" onClick={onNext} disabled={!explored}>
-        {explored ? T(copy.cta ?? 'Continue', tokens) : T(copy.lockedCta ?? 'Try it first', tokens)}
+        {explored ? T(copy.cta ?? 'Continue', tokens) : T(copy.lockedCta, tokens)}
       </button>
     </div>
   );

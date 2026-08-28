@@ -45,6 +45,40 @@ export type MechanicType =
   | 'goal-planner'         // J10 Your Money Map
   | 'spot-scam';           // J11 Spot the Scam
 
+/**
+ * The contract every mechanic implements.
+ *
+ * `onExplored` is how a mechanic tells the shell that the student has done
+ * enough for the Decide screen to be worth showing. The shell cannot infer
+ * this — "meaningfully interacted with" is different for every interaction,
+ * and a DOM-level heuristic (did a pointer go down anywhere?) unlocks on an
+ * accidental tap, which lets a student reach Decide having understood
+ * nothing. Each mechanic owns its own definition and calls this exactly once.
+ *
+ * Per-mechanic trigger, authoritative — implement to this when building each:
+ *
+ *   choice-fastforward  J1   the fast-forward has been run at least once
+ *   compare-income      J2   both income paths have been viewed
+ *   allocate-events     J3   the whole pool has been assigned (remaining = 0)
+ *   flow-trace          J4   the trace has reached the final node
+ *   parallel-shock      J5   the shock has been applied to both students
+ *   emi-slider          J6   any slider has moved once
+ *   compound-curve      J7   the rate or start-age has changed at least once
+ *   allocate-portfolio  J8   all buckets allocated AND both runs played
+ *   match-goal          J9   every goal has been matched to an instrument
+ *   goal-planner        J10  at least one goal has an amount and a date
+ *   spot-scam           J11  every offer judged, or the timer has expired
+ *
+ * J8 deliberately requires BOTH runs: the lesson is that the same choice can
+ * produce different outcomes, which one run cannot demonstrate.
+ */
+export interface MechanicProps {
+  /** Call once, when this mechanic's own engagement bar is met. */
+  onExplored: () => void;
+  /** Author-supplied label overrides for this mechanic's controls. */
+  labels?: Record<string, string>;
+}
+
 export type MasteryState =
   | 'introduced' | 'practicing' | 'understood' | 'applied' | 'mastered';
 
@@ -80,12 +114,17 @@ export interface InteractCopy {
   labels?: Record<string, string>;
   cta?: string;
   /**
-   * Shown while the student has not touched the mechanic yet. Authorable
-   * because the nudge has to name the actual interaction — only one of the
-   * eleven mechanics is a slider, so a hardcoded "move a slider" is wrong
-   * for the other ten.
+   * REQUIRED. Shown while the student has not yet meaningfully engaged with
+   * the mechanic. Named `interact_cta` in the CMS and database; `lockedCta`
+   * here because `cta` above is also an interact-screen CTA (the unlocked
+   * one), and two fields called "interact cta" in one object would be
+   * ambiguous to whoever authors the next experience.
+   *
+   * Not optional: the nudge must name the actual interaction. Only one of
+   * the eleven mechanics is a slider, so there is no safe global default —
+   * a missing value here is an authoring bug, and the type should say so.
    */
-  lockedCta?: string;
+  lockedCta: string;
 }
 
 export interface DecideOption {

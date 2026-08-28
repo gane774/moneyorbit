@@ -125,23 +125,19 @@ export default function LessonPlayer({
     router.push(upcoming ? `/home?done=${journey.slug}` : '/complete');
   };
 
-  const mechanic =
+  /* Each mechanic receives the callback and decides for itself when the
+     student has engaged enough to move on (see MechanicProps). */
+  const renderMechanic = (onExplored: () => void) =>
     experience.mechanicType === 'emi-slider' ? (
       <EmiSlider
         params={variant.params as unknown as EmiParams}
         labels={copy.interact.labels}
+        onExplored={onExplored}
       />
     ) : (
       <PlaceholderMechanic
         mechanicType={experience.mechanicType}
-        /* For an unwritten experience the headline IS the mechanic note. Once
-           real copy lands the headline is the student's instruction, so
-           repeating it here would just echo the line above it. */
-        note={
-          placeholder
-            ? copy.interact.headline.replace('[PLACEHOLDER]', '').trim()
-            : 'This interaction is not built yet. The copy around it is final.'
-        }
+        onExplored={onExplored}
       />
     );
 
@@ -159,9 +155,10 @@ export default function LessonPlayer({
           <ExplainScreen copy={copy.explain} tokens={tokens} placeholder={placeholder} onNext={next} />
         )}
         {screen === 'interact' && (
-          <InteractScreen copy={copy.interact} tokens={tokens} placeholder={placeholder} onNext={next}>
-            {mechanic}
-          </InteractScreen>
+          <InteractScreen
+            copy={copy.interact} tokens={tokens} placeholder={placeholder}
+            onNext={next} renderMechanic={renderMechanic}
+          />
         )}
         {screen === 'decide' && (
           <DecideScreen copy={copy.decide} tokens={tokens} placeholder={placeholder} onDecide={onDecide} />
