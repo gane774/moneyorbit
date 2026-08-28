@@ -1,6 +1,7 @@
 import { compound, computeLoan, inr } from './money';
 import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
 import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
+import type { CompoundCurveParams } from '@/content/experiences/j07-math';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 
@@ -131,5 +132,31 @@ export function compareIncomeTokens(p: CompareIncomeParams): Record<string, stri
     zaraPrincipal: inr(p.passive.principal),
     zaraRate: `${p.passive.ratePct}%`,
     zaraMonthly: inr(zaraMonthly),
+  };
+}
+
+/** Derived figures for the compound-curve mechanic (J7). Decide compares
+ *  "start 10 years earlier" against "find a 2-point-better rate," both
+ *  measured from the same default start age, so the two levers are a fair
+ *  side-by-side rather than an arbitrary pair of numbers. */
+export function compoundCurveTokens(p: CompoundCurveParams): Record<string, string> {
+  const baseAge = Math.min(p.startAge.max, p.startAge.default + 10);
+  const earlyAge = p.startAge.default;
+  const rate = p.rate.default;
+  const betterRate = rate + 2;
+
+  const fvEarlier = compound(p.principal, rate, p.untilAge - earlyAge);
+  const fvBetterRate = compound(p.principal, betterRate, p.untilAge - baseAge);
+
+  return {
+    principal: inr(p.principal),
+    baseAge: String(baseAge),
+    earlyAge: String(earlyAge),
+    untilAge: String(p.untilAge),
+    rate: `${rate}%`,
+    betterRate: `${betterRate}%`,
+    fvEarlier: inr(fvEarlier),
+    fvBetterRate: inr(fvBetterRate),
+    inflation: `${p.inflation}%`,
   };
 }

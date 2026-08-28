@@ -3,6 +3,7 @@ import { J01_MINDSET } from './j01-mindset';
 import { J02_EARNING } from './j02-earning';
 import { J04_BANKING } from './j04-banking';
 import { J05_SAVING } from './j05-saving';
+import { J07_MATH } from './j07-math';
 import { J03_BUDGETING } from './j03-budgeting';
 import { j06Credit } from './j06-credit';
 import { PLACEHOLDER_EXPERIENCES } from './placeholders';
@@ -11,7 +12,7 @@ import { PLACEHOLDER_EXPERIENCES } from './placeholders';
  * Authored experiences win over their placeholder of the same id, so a real
  * lesson can land one at a time without editing placeholders.ts.
  */
-const AUTHORED: Experience[] = [J01_MINDSET, J02_EARNING, J03_BUDGETING, J04_BANKING, J05_SAVING, j06Credit];
+const AUTHORED: Experience[] = [J01_MINDSET, J02_EARNING, J03_BUDGETING, J04_BANKING, J05_SAVING, j06Credit, J07_MATH];
 const AUTHORED_IDS = new Set(AUTHORED.map((e) => e.id));
 
 export const EXPERIENCES: Experience[] = [
@@ -36,4 +37,4 @@ export function variantFor(exp: Experience, band: AgeBand) {
   return exp.ageVariants[band];
 }
 
-export { j06Credit, J01_MINDSET, J02_EARNING, J03_BUDGETING, J04_BANKING, J05_SAVING };
+export { j06Credit, J01_MINDSET, J02_EARNING, J03_BUDGETING, J04_BANKING, J05_SAVING, J07_MATH };
