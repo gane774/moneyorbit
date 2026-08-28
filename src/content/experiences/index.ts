@@ -7,6 +7,7 @@ import { J07_MATH } from './j07-math';
 import { J08_INVESTING } from './j08-investing';
 import { J09_DESTINATIONS } from './j09-destinations';
 import { J10_PLANNING } from './j10-planning';
+import { J11_SCAMS } from './j11-scams';
 import { J03_BUDGETING } from './j03-budgeting';
 import { j06Credit } from './j06-credit';
 import { PLACEHOLDER_EXPERIENCES } from './placeholders';
@@ -17,7 +18,7 @@ import { PLACEHOLDER_EXPERIENCES } from './placeholders';
  */
 const AUTHORED: Experience[] = [
   J01_MINDSET, J02_EARNING, J03_BUDGETING, J04_BANKING, J05_SAVING, j06Credit, J07_MATH, J08_INVESTING,
-  J09_DESTINATIONS, J10_PLANNING,
+  J09_DESTINATIONS, J10_PLANNING, J11_SCAMS,
 ];
 const AUTHORED_IDS = new Set(AUTHORED.map((e) => e.id));
 
@@ -45,5 +46,5 @@ export function variantFor(exp: Experience, band: AgeBand) {
 
 export {
   j06Credit, J01_MINDSET, J02_EARNING, J03_BUDGETING, J04_BANKING, J05_SAVING, J07_MATH, J08_INVESTING,
-  J09_DESTINATIONS, J10_PLANNING,
+  J09_DESTINATIONS, J10_PLANNING, J11_SCAMS,
 };

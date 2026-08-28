@@ -19,6 +19,7 @@ import type { ParallelShockParams } from '@/content/experiences/j05-saving';
 import type { AllocatePortfolioParams } from '@/content/experiences/j08-investing';
 import type { MatchGoalParams } from '@/content/experiences/j09-destinations';
 import type { GoalPlannerParams } from '@/content/experiences/j10-planning';
+import type { SpotScamParams } from '@/content/experiences/j11-scams';
 import type { CompoundCurveParams } from '@/content/experiences/j07-math';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
@@ -33,6 +34,7 @@ import CompareIncome from './mechanics/CompareIncome';
 import FlowTrace from './mechanics/FlowTrace';
 import AllocatePortfolio from './mechanics/AllocatePortfolio';
 import GoalPlanner from './mechanics/GoalPlanner';
+import SpotScam from './mechanics/SpotScam';
 import MatchGoal from './mechanics/MatchGoal';
 import CompoundCurve from './mechanics/CompoundCurve';
 import ParallelShock from './mechanics/ParallelShock';
@@ -231,6 +233,12 @@ export default function LessonPlayer({
     ) : experience.mechanicType === 'goal-planner' ? (
       <GoalPlanner
         params={variant.params as unknown as GoalPlannerParams}
+        onExplored={onExplored}
+      />
+    ) : experience.mechanicType === 'spot-scam' ? (
+      <SpotScam
+        params={variant.params as unknown as SpotScamParams}
+        labels={copy.interact.labels}
         onExplored={onExplored}
       />
     ) : (
