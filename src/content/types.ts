@@ -7,6 +7,15 @@
 export type AgeBand = '12-14' | '15-16' | '17-18';
 export const AGE_BANDS: AgeBand[] = ['12-14', '15-16', '17-18'];
 
+/**
+ * Open-ended at the top: 17 and above all resolve to '17-18'.
+ *
+ * Adults are a real part of the audience, and they get the 17-18 content
+ * unchanged — there is no fourth variant and no adult tier to author. The
+ * band name is therefore a content-routing key, not a claim about the
+ * reader's age. Note this is deliberately NOT the same rule as the
+ * `is_minor` privacy tag on activity_events, which stays age < 18.
+ */
 export function bandForAge(age: number): AgeBand {
   if (age <= 14) return '12-14';
   if (age <= 16) return '15-16';
@@ -70,6 +79,13 @@ export interface InteractCopy {
   /** Optional label overrides for the mechanic's own controls and readouts. */
   labels?: Record<string, string>;
   cta?: string;
+  /**
+   * Shown while the student has not touched the mechanic yet. Authorable
+   * because the nudge has to name the actual interaction — only one of the
+   * eleven mechanics is a slider, so a hardcoded "move a slider" is wrong
+   * for the other ten.
+   */
+  lockedCta?: string;
 }
 
 export interface DecideOption {

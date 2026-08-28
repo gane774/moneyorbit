@@ -12,7 +12,9 @@ create table student_identity (
   auth_user_id   uuid unique references auth.users(id) on delete cascade,
   username       text unique not null check (char_length(username) between 3 and 32),
   full_name      text not null,
-  age            int  not null check (age between 12 and 18),
+  -- Open-ended at the top: adults get the 17-18 content variant.
+  -- Unrelated to activity_events.is_minor, which stays age < 18.
+  age            int  not null check (age >= 12),
   age_band       text not null check (age_band in ('12-14','15-16','17-18')),
   contact_method text not null check (contact_method in ('email','phone')),
   contact_value  text not null,

@@ -88,7 +88,7 @@ export function InteractScreen({
 
       <div className="spacer" />
       <button className="btn" onClick={onNext} disabled={!explored}>
-        {explored ? T(copy.cta ?? 'Continue', tokens) : 'Try moving a slider'}
+        {explored ? T(copy.cta ?? 'Continue', tokens) : T(copy.lockedCta ?? 'Try it first', tokens)}
       </button>
     </div>
   );

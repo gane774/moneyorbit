@@ -4,14 +4,16 @@ import type { MechanicType } from '@/content/types';
 
 /** Stands in until each mechanic is built. Keeps the 11-journey flow
  *  walkable end to end, and never pretends to be finished content. */
+/* No onExplored prop: InteractScreen decides "explored" from real pointer,
+   key and input events on its wrapper, so this button unlocks the CTA the
+   same way a slider does. A prop here would be dead code implying a
+   contract that does not exist. */
 export default function PlaceholderMechanic({
   mechanicType,
   note,
-  onExplored,
 }: {
   mechanicType: MechanicType;
   note: string;
-  onExplored?: () => void;
 }) {
   return (
     <div
@@ -35,11 +37,7 @@ export default function PlaceholderMechanic({
         Mechanic · {mechanicType}
       </div>
       <p style={{ fontSize: 14.5, lineHeight: 1.5, color: 'var(--ink-60)' }}>{note}</p>
-      <button
-        className="btn ghost"
-        style={{ marginTop: 16 }}
-        onClick={() => onExplored?.()}
-      >
+      <button className="btn ghost" style={{ marginTop: 16 }} type="button">
         Simulate interaction
       </button>
     </div>

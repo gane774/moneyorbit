@@ -68,6 +68,7 @@ const copy1516: ScreenCopy = {
       interest: 'Extra you pay',
     },
     cta: 'I see it',
+    lockedCta: 'Try moving a slider',
   },
 
   decide: {

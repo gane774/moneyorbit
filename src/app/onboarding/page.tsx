@@ -90,18 +90,19 @@ export default function Onboarding() {
               <div className="field" style={{ marginTop: 22 }}>
                 <label htmlFor="age">Age</label>
                 <input
-                  id="age" type="number" inputMode="numeric" min={12} max={18}
+                  id="age" type="number" inputMode="numeric" min={12}
                   value={age} onChange={(e) => setAge(e.target.value)} placeholder="15"
                 />
-                {ageNum && (ageNum < 12 || ageNum > 18) ? (
-                  <div className="err">This course is written for 12 to 18 year olds.</div>
+                {/* No upper bound: 17 and above all get the 17-18 content. */}
+                {ageNum && ageNum < 12 ? (
+                  <div className="err">This course starts at age 12.</div>
                 ) : null}
               </div>
 
               <div className="spacer" />
               <button
                 className="btn"
-                disabled={!(ageNum >= 12 && ageNum <= 18)}
+                disabled={!(ageNum >= 12)}
                 onClick={() => { setErr(null); setStep(2); }}
               >
                 Next

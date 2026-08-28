@@ -8,7 +8,8 @@ import {
 } from '@/content/types';
 import { JOURNEY_BY_ID, nextJourney } from '@/content/journeys';
 import { variantFor } from '@/content/experiences';
-import { emiTokens } from '@/lib/tokens';
+import { allocateTokens, emiTokens } from '@/lib/tokens';
+import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 import * as P from '@/lib/progress';
 import { TopBar } from './PlayerChrome';
@@ -63,6 +64,9 @@ export default function LessonPlayer({
   const tokens = useMemo(() => {
     if (experience.mechanicType === 'emi-slider' && variant) {
       return emiTokens(variant.params as unknown as EmiParams);
+    }
+    if (experience.mechanicType === 'allocate-events' && variant) {
+      return allocateTokens(variant.params as unknown as AllocateParams);
     }
     return {};
   }, [experience.mechanicType, variant]);
@@ -130,7 +134,14 @@ export default function LessonPlayer({
     ) : (
       <PlaceholderMechanic
         mechanicType={experience.mechanicType}
-        note={copy.interact.headline.replace('[PLACEHOLDER]', '').trim()}
+        /* For an unwritten experience the headline IS the mechanic note. Once
+           real copy lands the headline is the student's instruction, so
+           repeating it here would just echo the line above it. */
+        note={
+          placeholder
+            ? copy.interact.headline.replace('[PLACEHOLDER]', '').trim()
+            : 'This interaction is not built yet. The copy around it is final.'
+        }
       />
     );
 
