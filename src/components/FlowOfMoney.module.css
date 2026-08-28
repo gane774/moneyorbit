@@ -6,13 +6,19 @@
   position:relative;
   /* svh (small viewport height) rather than vh: it is stable when a mobile
      URL bar shows and hides, so the scroll distance does not change under
-     the reader mid-scrub. vh is kept first as a fallback for older engines. */
-  height:1800vh;
-  height:1800svh;
+     the reader mid-scrub. vh is kept first as a fallback for older engines.
+
+     800 rather than the original 1800: eighteen viewport heights meant most
+     of the scroll was empty travel between states. The scrub maps 0..1 across
+     whatever this distance is, so cutting it does not remove any beat of the
+     narrative -- it raises the density of what happens per screen. */
+  height:800vh;
+  height:800svh;
   background:var(--ink);
 
-  /* derived surfaces for the retokened SVG */
-  --flow-surface2:#22261A;
+  /* Borders only. There is deliberately no animation-only surface token here:
+     the SVG uses --ink-surface, the same dark surface the lesson screens use,
+     so the animation cannot drift into its own visual identity. */
   --flow-border:rgba(251,251,248,.16);
 }
 

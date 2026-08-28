@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { resolveStartDestination } from '@/lib/startDestination';
 import styles from './FlowOfMoney.module.css';
 
 /**
@@ -23,7 +24,11 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [reduced, setReduced] = useState(false);
 
-  const start = onStart ?? (() => router.push('/onboarding'));
+  /* Always route through resolveStartDestination so the CTA is correct for a
+     returning student, not just a first-time visitor. Resolved on click rather
+     than at render: it reads localStorage, which is not available during SSR
+     and would otherwise hydrate with the wrong destination. */
+  const start = onStart ?? (() => router.push(resolveStartDestination().href));
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -112,19 +117,22 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
 
   // Budgeting action: Fill buckets
   tl.to("#bp1", { opacity: 1, duration: 0.1 }, "budget+=3")
-  .to("#bp1", { x: -110, y: 150, duration: 0.5, ease: "power1.in" }, "budget+=3.1")
+  .to("#bp1", { x: -110, duration: 0.5, ease: "power2.out" }, "budget+=3.1")
+  .to("#bp1", { y: 150, duration: 0.5, ease: "power2.in" }, "budget+=3.1")
   .to("#bp1", { opacity: 0, duration: 0.1 }, "budget+=3.6")
   .to("#fill-needs", { height: 60, y: 58, duration: 0.5 }, "budget+=3.6")
   .to("#txt-needs", { innerHTML: "50%", snap: { innerHTML: 1 }, duration: 0.5 }, "budget+=3.6");
 
   tl.to("#bp2", { opacity: 1, duration: 0.1 }, "budget+=3.2")
-  .to("#bp2", { x: 0, y: 150, duration: 0.5, ease: "power1.in" }, "budget+=3.3")
+  .to("#bp2", { x: 0, duration: 0.5, ease: "power2.out" }, "budget+=3.3")
+  .to("#bp2", { y: 150, duration: 0.5, ease: "power2.in" }, "budget+=3.3")
   .to("#bp2", { opacity: 0, duration: 0.1 }, "budget+=3.8")
   .to("#fill-wants", { height: 36, y: 82, duration: 0.5 }, "budget+=3.8")
   .to("#txt-wants", { innerHTML: "30%", snap: { innerHTML: 1 }, duration: 0.5 }, "budget+=3.8");
 
   tl.to("#bp3", { opacity: 1, duration: 0.1 }, "budget+=3.4")
-  .to("#bp3", { x: 110, y: 150, duration: 0.5, ease: "power1.in" }, "budget+=3.5")
+  .to("#bp3", { x: 110, duration: 0.5, ease: "power2.out" }, "budget+=3.5")
+  .to("#bp3", { y: 150, duration: 0.5, ease: "power2.in" }, "budget+=3.5")
   .to("#bp3", { opacity: 0, duration: 0.1 }, "budget+=4.0")
   .to("#fill-save", { height: 24, y: 94, duration: 0.5 }, "budget+=4.0")
   .to("#txt-save", { innerHTML: "20%", snap: { innerHTML: 1 }, duration: 0.5 }, "budget+=4.0");
@@ -328,12 +336,12 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
             <defs>
                 {/* Grid Pattern */}
                 <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-                    <path d="M 100 0 L 0 0 0 100" fill="none" stroke="var(--flow-surface2)" strokeWidth="1"/>
+                    <path d="M 100 0 L 0 0 0 100" fill="none" stroke="var(--flow-border)" strokeWidth="1"/>
                     <circle cx="0" cy="0" r="1.5" fill="var(--flow-border)" />
                 </pattern>
 
                 {/* Glow Filters */}
-                <filter id="glow-primary" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="glow-primary" x="-200%" y="-200%" width="500%" height="500%">
                     <feGaussianBlur stdDeviation="12" result="blur1" />
                     <feGaussianBlur stdDeviation="24" result="blur2" />
                     <feMerge>
@@ -342,15 +350,15 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
                         <feMergeNode in="SourceGraphic" />
                     </feMerge>
                 </filter>
-                <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="glow-red" x="-125%" y="-125%" width="350%" height="350%">
                     <feGaussianBlur stdDeviation="10" result="blur" />
                     <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                 </filter>
-                <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="glow-green" x="-125%" y="-125%" width="350%" height="350%">
                     <feGaussianBlur stdDeviation="10" result="blur" />
                     <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                 </filter>
-                <filter id="glow-cyan" x="-50%" y="-50%" width="200%" height="200%">
+                <filter id="glow-cyan" x="-175%" y="-175%" width="450%" height="450%">
                     <feGaussianBlur stdDeviation="15" result="blur" />
                     <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
                 </filter>
@@ -401,13 +409,13 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
                 {/* Scene 1: START */}
                 <g id="scene-start">
                     <text id="start-t1" x="960" y="150" textAnchor="middle" fill="var(--paper)" fontSize="72" fontWeight="800" letterSpacing="-2">MONEY IS EVERYWHERE.</text>
-                    <text id="start-t2" x="960" y="220" textAnchor="middle" fill="var(--paper-60)" fontSize="36" opacity="0">But where does it actually go?</text>
+                    <text id="start-t2" x="960" y="220" textAnchor="middle" fill="var(--paper-60)" fontSize="52" opacity="0">But where does it actually go?</text>
                 </g>
 
                 {/* Scene 2: EARNING */}
                 <g id="scene-earn" opacity="0.3">
-                    <text x="1420" y="200" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">EARNING</text>
-                    <text x="1420" y="230" textAnchor="middle" fill="var(--paper-60)" fontSize="16">The sources of flow</text>
+                    <text x="1420" y="200" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">EARNING</text>
+                    <text x="1420" y="230" textAnchor="middle" fill="var(--paper-60)" fontSize="24">The sources of flow</text>
                     
                     {/* Inflow branches */}
                     <path d="M 1250 150 Q 1420 150, 1420 300" stroke="var(--good)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
@@ -415,10 +423,10 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
                     <path d="M 1250 450 Q 1420 450, 1420 300" stroke="var(--good)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
                     <path d="M 1590 450 Q 1420 450, 1420 300" stroke="var(--good)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
                     
-                    <text x="1240" y="145" textAnchor="end" fill="var(--paper-60)" fontSize="14">Work</text>
-                    <text x="1600" y="145" textAnchor="start" fill="var(--paper-60)" fontSize="14">Skills</text>
-                    <text x="1240" y="460" textAnchor="end" fill="var(--paper-60)" fontSize="14">Business</text>
-                    <text x="1600" y="460" textAnchor="start" fill="var(--paper-60)" fontSize="14">Assets</text>
+                    <text x="1240" y="145" textAnchor="end" fill="var(--paper-60)" fontSize="22">Work</text>
+                    <text x="1600" y="145" textAnchor="start" fill="var(--paper-60)" fontSize="22">Skills</text>
+                    <text x="1240" y="460" textAnchor="end" fill="var(--paper-60)" fontSize="22">Business</text>
+                    <text x="1600" y="460" textAnchor="start" fill="var(--paper-60)" fontSize="22">Assets</text>
 
                     {/* Particles for inflow */}
                     <circle id="earn-p1" cx="1250" cy="150" r="4" fill="var(--good)" opacity="0"/>
@@ -429,43 +437,43 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
 
                 {/* Scene 3: MINDSET */}
                 <g id="scene-mindset" opacity="0.3">
-                    <text x="1520" y="520" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">THE FIRST CHOICE</text>
+                    <text x="1520" y="520" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">THE FIRST CHOICE</text>
                     
                     {/* Split paths */}
                     <path id="path-now" d="M 1520 600 L 1750 600" stroke="var(--danger)" strokeWidth="4" fill="none" strokeDasharray="6,6"/>
                     <circle cx="1750" cy="600" r="12" fill="var(--ink-surface)" stroke="var(--danger)" strokeWidth="3"/>
-                    <text x="1750" y="570" textAnchor="middle" fill="var(--danger)" fontSize="20" fontWeight="bold">NOW</text>
-                    <text x="1750" y="635" textAnchor="middle" fill="var(--paper-60)" fontSize="14">Immediate Spend</text>
+                    <text x="1750" y="570" textAnchor="middle" fill="var(--danger)" fontSize="28" fontWeight="bold">NOW</text>
+                    <text x="1750" y="635" textAnchor="middle" fill="var(--paper-60)" fontSize="22">Immediate Spend</text>
                     
-                    <text x="1450" y="680" textAnchor="end" fill="var(--good)" fontSize="20" fontWeight="bold">LATER</text>
-                    <text x="1450" y="705" textAnchor="end" fill="var(--paper-60)" fontSize="14">Accumulate</text>
+                    <text x="1450" y="680" textAnchor="end" fill="var(--good)" fontSize="28" fontWeight="bold">LATER</text>
+                    <text x="1450" y="705" textAnchor="end" fill="var(--paper-60)" fontSize="22">Accumulate</text>
 
                     <circle id="mindset-ghost" cx="1520" cy="600" r="15" fill="var(--danger)" opacity="0" filter="url(#glow-red)"/>
                 </g>
 
                 {/* Scene 4: BUDGETING */}
                 <g id="scene-budget" opacity="0.3">
-                    <text x="1000" y="700" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">BUDGETING</text>
-                    <text x="1000" y="730" textAnchor="middle" fill="var(--paper-60)" fontSize="16">Directing the flow</text>
+                    <text x="1000" y="700" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">BUDGETING</text>
+                    <text x="1000" y="730" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Directing the flow</text>
 
                     {/* Buckets */}
                     <g transform="translate(850, 850)">
                         <rect x="0" y="0" width="80" height="120" rx="4" fill="none" stroke="var(--flow-border)" strokeWidth="2"/>
                         <rect id="fill-needs" x="2" y="118" width="76" height="0" rx="2" fill="url(#grad-budget)"/>
-                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="14">NEEDS</text>
-                        <text id="txt-needs" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="16" fontWeight="bold">0%</text>
+                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="22" fontWeight="500">NEEDS</text>
+                        <text id="txt-needs" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="24" fontWeight="bold">0%</text>
                     </g>
                     <g transform="translate(960, 850)">
                         <rect x="0" y="0" width="80" height="120" rx="4" fill="none" stroke="var(--flow-border)" strokeWidth="2"/>
                         <rect id="fill-wants" x="2" y="118" width="76" height="0" rx="2" fill="url(#grad-budget)"/>
-                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="14">WANTS</text>
-                        <text id="txt-wants" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="16" fontWeight="bold">0%</text>
+                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="22" fontWeight="500">WANTS</text>
+                        <text id="txt-wants" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="24" fontWeight="bold">0%</text>
                     </g>
                     <g transform="translate(1070, 850)">
                         <rect x="0" y="0" width="80" height="120" rx="4" fill="none" stroke="var(--flow-border)" strokeWidth="2"/>
                         <rect id="fill-save" x="2" y="118" width="76" height="0" rx="2" fill="url(#grad-budget)"/>
-                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="14">SAVINGS</text>
-                        <text id="txt-save" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="16" fontWeight="bold">0%</text>
+                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="22" fontWeight="500">SAVINGS</text>
+                        <text id="txt-save" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="24" fontWeight="bold">0%</text>
                     </g>
 
                     {/* Mini particles */}
@@ -476,20 +484,21 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
 
                 {/* Scene 5: BANKING */}
                 <g id="scene-bank" opacity="0.3">
-                    <text x="500" y="680" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">THE NETWORK</text>
+                    <text x="500" y="560" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">THE NETWORK</text>
+                    <text x="500" y="602" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Where your money actually travels</text>
                     
                     {/* Abstract Network */}
-                    <path d="M 500 800 L 400 700 L 300 750 L 500 800 L 600 720 L 700 800 L 500 800" stroke="var(--flow-surface2)" strokeWidth="2" fill="none"/>
+                    <path d="M 500 800 L 400 700 L 300 750 L 500 800 L 600 720 L 700 800 L 500 800" stroke="var(--flow-border)" strokeWidth="2" fill="none"/>
                     
                     {/* Nodes */}
                     <circle cx="400" cy="700" r="20" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="2"/>
-                    <text x="400" y="660" textAnchor="middle" fill="var(--n50)" fontSize="14">BANK</text>
+                    <text x="400" y="662" textAnchor="middle" fill="var(--n50)" fontSize="30" fontWeight="500">BANK</text>
                     
                     <circle cx="600" cy="720" r="20" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="2"/>
-                    <text x="600" y="680" textAnchor="middle" fill="var(--n50)" fontSize="14">PAYMENT</text>
+                    <text x="632" y="728" textAnchor="start" fill="var(--n50)" fontSize="30" fontWeight="500">PAYMENTS</text>
                     
                     <circle cx="300" cy="750" r="15" fill="var(--ink-surface)" stroke="var(--paper-60)" strokeWidth="2"/>
-                    <text x="250" y="755" textAnchor="end" fill="var(--paper-60)" fontSize="12">MERCHANT</text>
+                    <text x="272" y="757" textAnchor="end" fill="var(--paper-60)" fontSize="30" fontWeight="500">MERCHANT</text>
 
                     {/* Fast moving particle for UPI effect */}
                     <circle id="upi-particle" cx="500" cy="800" r="8" fill="var(--n50)" opacity="0" filter="url(#glow-cyan)"/>
@@ -499,41 +508,41 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
                 <g id="scene-save" opacity="0.3">
                     {/* The Reserve Shield */}
                     <circle id="reserve-shield" cx="400" cy="1100" r="80" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="4" filter="url(#glow-cyan)" opacity="0.5"/>
-                    <text x="400" y="1090" textAnchor="middle" fill="var(--paper)" fontSize="20" fontWeight="bold">EMERGENCY</text>
-                    <text x="400" y="1115" textAnchor="middle" fill="var(--paper)" fontSize="20" fontWeight="bold">FUND</text>
+                    <text x="400" y="1090" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">EMERGENCY</text>
+                    <text x="400" y="1115" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">FUND</text>
 
                     {/* Expense Spike */}
                     <g id="expense-group" transform="translate(100, 1100)">
                         <path d="M 0 0 L 60 -15 L 120 0 L 60 15 Z" fill="var(--danger)" filter="url(#glow-red)"/>
-                        <text x="60" y="-30" textAnchor="middle" fill="var(--danger)" fontSize="16" fontWeight="bold">₹12,000 EXPENSE</text>
+                        <text x="60" y="-30" textAnchor="middle" fill="var(--danger)" fontSize="24" fontWeight="bold">₹12,000 EXPENSE</text>
                     </g>
                 </g>
 
                 {/* Scene 7: CREDIT */}
                 <g id="scene-credit" opacity="0.3">
-                    <text x="1000" y="1180" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">CREDIT</text>
+                    <text x="1000" y="1180" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">CREDIT</text>
                     
                     {/* Borrow In */}
                     <path d="M 800 1200 Q 900 1200, 950 1300" stroke="var(--n200)" strokeWidth="6" fill="none" strokeDasharray="8,8"/>
-                    <text x="800" y="1180" textAnchor="middle" fill="var(--n200)" fontSize="18">BORROW</text>
+                    <text x="800" y="1180" textAnchor="middle" fill="var(--n200)" fontSize="26">BORROW</text>
                     <circle id="credit-in-p" cx="800" cy="1200" r="8" fill="var(--n200)" opacity="0"/>
 
                     {/* Repay Out */}
                     <path d="M 1050 1300 Q 1150 1300, 1200 1400" stroke="var(--danger)" strokeWidth="10" fill="none" strokeDasharray="8,8"/>
-                    <text x="1200" y="1430" textAnchor="middle" fill="var(--danger)" fontSize="18">REPAY + INTEREST</text>
+                    <text x="1200" y="1430" textAnchor="middle" fill="var(--danger)" fontSize="26">REPAY + INTEREST</text>
                     
-                    <text id="credit-msg" x="1000" y="1400" textAnchor="middle" fill="var(--paper-60)" fontSize="20" opacity="0">Money now = Obligation later.</text>
+                    <text id="credit-msg" x="1000" y="1400" textAnchor="middle" fill="var(--paper-60)" fontSize="28" opacity="0">Money now = Obligation later.</text>
                 </g>
 
                 {/* Scene 8: MATH */}
                 <g id="scene-math" opacity="0.3">
-                    <text x="1420" y="1150" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">MONEY MATH</text>
-                    <text x="1420" y="1180" textAnchor="middle" fill="var(--paper-60)" fontSize="16">Time & Compounding</text>
+                    <text x="1420" y="1150" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">MONEY MATH</text>
+                    <text x="1420" y="1180" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Time & Compounding</text>
 
                     {/* Axes */}
                     <line x1="1250" y1="1400" x2="1600" y2="1400" stroke="var(--flow-border)" strokeWidth="2"/>
                     <line x1="1250" y1="1400" x2="1250" y2="1150" stroke="var(--flow-border)" strokeWidth="2"/>
-                    <text x="1620" y="1405" fill="var(--paper-60)" fontSize="14">TIME</text>
+                    <text x="1620" y="1405" fill="var(--paper-60)" fontSize="22">TIME</text>
 
                     {/* Exponential Curve */}
                     <path id="exp-curve" d="M 1250 1400 Q 1500 1400, 1550 1150" stroke="var(--n200)" strokeWidth="4" fill="none" strokeDasharray="500" strokeDashoffset="500" filter="url(#glow-primary)"/>
@@ -551,24 +560,24 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
 
                 {/* Scene 9: INVESTING */}
                 <g id="scene-invest" opacity="0.3">
-                    <text x="1520" y="1480" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">INVESTING</text>
+                    <text x="1520" y="1480" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">INVESTING</text>
                     
                     {/* Branches */}
                     {/* Equity (Volatile) */}
                     <path d="M 1520 1500 Q 1600 1550, 1520 1600 T 1520 1700 L 1420 1800" stroke="var(--danger)" strokeWidth="3" fill="none"/>
-                    <text x="1620" y="1600" fill="var(--danger)" fontSize="14">EQUITY (High Risk)</text>
+                    <text x="1620" y="1600" fill="var(--danger)" fontSize="22">EQUITY (High Risk)</text>
                     
                     {/* Fixed (Straight) */}
                     <path d="M 1520 1500 L 1450 1650 L 1420 1800" stroke="var(--n50)" strokeWidth="3" fill="none"/>
-                    <text x="1350" y="1650" fill="var(--n50)" fontSize="14">FIXED (Steady)</text>
+                    <text x="1350" y="1650" fill="var(--n50)" fontSize="22">FIXED (Steady)</text>
                     
                     {/* Gold (Gentle) */}
                     <path d="M 1520 1500 Q 1550 1650, 1420 1800" stroke="var(--n200)" strokeWidth="3" fill="none"/>
-                    <text x="1500" y="1680" fill="var(--n200)" fontSize="14">GOLD (Stable)</text>
+                    <text x="1500" y="1680" fill="var(--n200)" fontSize="22">GOLD (Stable)</text>
 
                     {/* Portfolio Recombine */}
                     <circle cx="1420" cy="1800" r="30" fill="none" stroke="var(--good)" strokeWidth="4" strokeDasharray="8,4"/>
-                    <text x="1420" y="1750" textAnchor="middle" fill="var(--good)" fontSize="16" fontWeight="bold">PORTFOLIO</text>
+                    <text x="1420" y="1750" textAnchor="middle" fill="var(--good)" fontSize="24" fontWeight="bold">PORTFOLIO</text>
 
                     {/* Ghost particles for branches */}
                     <circle id="inv-p1" cx="1520" cy="1500" r="8" fill="var(--danger)" opacity="0"/>
@@ -578,7 +587,7 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
 
                 {/* Scene 10: DESTINATIONS */}
                 <g id="scene-dest" opacity="0.3">
-                    <text x="1000" y="1650" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">DESTINATIONS</text>
+                    <text x="1000" y="1650" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">DESTINATIONS</text>
                     
                     {/* Orbit Rings */}
                     <circle cx="1000" cy="1800" r="100" fill="none" stroke="var(--flow-border)" strokeWidth="1"/>
@@ -586,28 +595,28 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
 
                     {/* Nodes */}
                     <g id="dest-nodes">
-                        <g transform="translate(1000, 1700)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n50)" fontSize="12">STOCKS</text></g>
-                        <g transform="translate(1100, 1800)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n200)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n200)" fontSize="12">GOLD</text></g>
-                        <g transform="translate(1000, 1900)"><circle r="15" fill="var(--ink-surface)" stroke="var(--good)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--good)" fontSize="12">MUTUAL FUNDS</text></g>
-                        <g transform="translate(850, 1800)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n2000)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n2000)" fontSize="12">FD / RD</text></g>
+                        <g transform="translate(1000, 1700)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n50)" fontSize="20">STOCKS</text></g>
+                        <g transform="translate(1100, 1800)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n200)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n200)" fontSize="20">GOLD</text></g>
+                        <g transform="translate(1000, 1900)"><circle r="15" fill="var(--ink-surface)" stroke="var(--good)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--good)" fontSize="20">MUTUAL FUNDS</text></g>
+                        <g transform="translate(850, 1800)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n2000)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n2000)" fontSize="20">FD / RD</text></g>
                     </g>
                 </g>
 
                 {/* Scene 11: SCAMS */}
                 <g id="scene-scam" opacity="0.3">
-                    <text x="500" y="1700" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">PROTECT YOUR FLOW</text>
+                    <text x="500" y="1700" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">PROTECT YOUR FLOW</text>
                     
                     {/* Scam Branch */}
                     <path d="M 600 1800 L 580 1850 L 620 1890 L 570 1940 L 600 1980" stroke="var(--danger)" strokeWidth="6" fill="none" filter="url(#glow-red)"/>
-                    <text x="630" y="1850" fill="var(--danger)" fontSize="18" fontWeight="bold">"30% GUARANTEED"</text>
+                    <text x="630" y="1850" fill="var(--danger)" fontSize="26" fontWeight="bold">"30% GUARANTEED"</text>
                     
                     {/* Warning Signs */}
                     <g id="scam-warnings" opacity="0">
                         <rect x="650" y="1880" width="120" height="30" rx="4" fill="var(--danger)"/>
-                        <text x="710" y="1900" textAnchor="middle" fill="var(--ink-surface)" fontSize="14" fontWeight="bold">URGENCY!</text>
+                        <text x="710" y="1900" textAnchor="middle" fill="var(--ink-surface)" fontSize="22" fontWeight="bold">URGENCY!</text>
                         
                         <rect x="620" y="1930" width="140" height="30" rx="4" fill="var(--danger)"/>
-                        <text x="690" y="1950" textAnchor="middle" fill="var(--ink-surface)" fontSize="14" fontWeight="bold">UNKNOWN SOURCE</text>
+                        <text x="690" y="1950" textAnchor="middle" fill="var(--ink-surface)" fontSize="22" fontWeight="bold">UNKNOWN SOURCE</text>
                     </g>
                 </g>
 
@@ -620,7 +629,7 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
                 {/* THE PROTAGONIST PARTICLE */}
                 <g id="protagonist" transform="translate(960, 300)">
                     <circle id="p-core" r="24" fill="var(--ink-surface)" stroke="var(--n2000)" strokeWidth="6" filter="url(#glow-primary)"/>
-                    <text textAnchor="middle" dominantBaseline="central" fill="var(--paper)" fontSize="28" fontWeight="bold" y="2">₹</text>
+                    <text textAnchor="middle" dominantBaseline="central" fill="var(--paper)" fontSize="44" fontWeight="bold" y="2">₹</text>
                 </g>
             </g> {/* End Camera */}
 
@@ -628,12 +637,12 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
             <g id="final-ui" opacity="0" pointerEvents="none">
                 <rect width="1920" height="1080" fill="var(--ink)" opacity="0.6"/>
                 <text x="960" y="450" textAnchor="middle" fill="var(--paper)" fontSize="72" fontWeight="800" letterSpacing="-1">NOW YOU SEE HOW MONEY MOVES.</text>
-                <text x="960" y="520" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Everything is connected. Your choices shape the flow.</text>
+                <text x="960" y="520" textAnchor="middle" fill="var(--paper-60)" fontSize="32">Everything is connected. Your choices shape the flow.</text>
                 
                 {/* CTA Button */}
-                <g transform="translate(810, 600)" className={styles.btnInteractive} onClick={onStart}>
+                <g transform="translate(810, 600)" className={styles.btnInteractive} onClick={start} role="button" tabIndex={0}>
                     <rect width="300" height="80" rx="40" fill="var(--n2000)" />
-                    <text x="150" y="48" textAnchor="middle" fill="var(--ink-surface)" fontSize="24" fontWeight="bold">START LEARNING</text>
+                    <text x="150" y="48" textAnchor="middle" fill="var(--ink-surface)" fontSize="32" fontWeight="bold">START LEARNING</text>
                 </g>
             </g>
 
