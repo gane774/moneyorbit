@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { rich } from '@/lib/rich';
 import { resolveTokens } from '@/lib/tokens';
 import { Kicker, PlaceholderBadge } from './PlayerChrome';
-import { isPlaceholderText, stripPlaceholder } from '@/content/types';
+import { COMMIT_OPTION_ID, isPlaceholderText, stripPlaceholder } from '@/content/types';
 import type {
   DecideCopy, ExplainCopy, FeedbackCopy, HookCopy, InteractCopy, PracticeCopy,
 } from '@/content/types';
@@ -102,6 +102,7 @@ export function DecideScreen({
   copy, tokens, placeholder, onDecide,
 }: Omit<Base, 'onNext'> & { copy: DecideCopy; onDecide: (optionId: string) => void }) {
   const [sel, setSel] = useState<string | null>(null);
+  const branching = (copy.options?.length ?? 0) > 0;
 
   return (
     <div className="scr">
@@ -109,8 +110,12 @@ export function DecideScreen({
       <Kicker>{T(copy.kicker, tokens)}</Kicker>
       <h2 className="h-mid" style={{ marginBottom: 16 }}>{rich(T(copy.headline, tokens))}</h2>
 
+      {copy.body?.map((line, i) => (
+        <p key={i} className="body-s" style={{ marginBottom: 10 }}>{rich(T(line, tokens))}</p>
+      ))}
+
       <div role="radiogroup" aria-label="Your choice">
-        {copy.options.map((o) => (
+        {(copy.options ?? []).map((o) => (
           <button
             key={o.id}
             type="button"
@@ -127,7 +132,11 @@ export function DecideScreen({
       </div>
 
       <div className="spacer" />
-      <button className="btn" disabled={!sel} onClick={() => sel && onDecide(sel)}>
+      <button
+        className="btn"
+        disabled={branching && !sel}
+        onClick={() => onDecide(branching ? sel! : COMMIT_OPTION_ID)}
+      >
         {T(copy.cta, tokens)}
       </button>
     </div>
@@ -150,6 +159,11 @@ export function FeedbackScreen({
 
       <div className={`verdict${verdict.tone === 'good' ? ' good' : ''}`}>
         <div className="vt">{rich(T(verdict.title, tokens), 'vt')}</div>
+        {verdict.lines?.map((line, i) => (
+          <div key={i} className="vb" style={{ marginBottom: 4, opacity: 0.85 }}>
+            {rich(T(line, tokens), `vl${i}`)}
+          </div>
+        ))}
         <div className="vb">{rich(T(verdict.body, tokens), 'vb')}</div>
       </div>
 

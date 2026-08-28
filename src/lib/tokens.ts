@@ -78,5 +78,10 @@ export function allocateTokens(p: AllocateParams): Record<string, string> {
     bufferGap: inr(Math.max(0, eventsTotal - p.bufferTarget)),
     dayRanOut: String(dayRanOut || p.events[p.events.length - 1].day),
     month: p.month,
+    // ev1, ev2, ... in the order authored in params (chronological in every
+    // experience so far). Lets Feedback copy narrate the specific shocks —
+    // "Day 6 — your water bottle cracks. {{ev1}}." — without the day and
+    // amount risking drift from what the mechanic actually generated.
+    ...Object.fromEntries(p.events.map((e, i) => [`ev${i + 1}`, inr(e.amount)])),
   };
 }

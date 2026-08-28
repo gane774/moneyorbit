@@ -135,10 +135,22 @@ export interface DecideOption {
   figure?: RichText;
 }
 
+/** Id used when a Decide screen commits rather than branches. */
+export const COMMIT_OPTION_ID = 'commit';
+
 export interface DecideCopy {
   kicker: RichText;
   headline: RichText;
-  options: DecideOption[];
+  /** Optional supporting lines, e.g. the terms of the commitment. */
+  body?: RichText[];
+  /**
+   * Omit for a COMMITTING decide screen, where the student's real choice was
+   * made in the mechanic (their allocation) and this screen only locks it in.
+   * The CTA is then the decision, and Feedback keys its single verdict to
+   * COMMIT_OPTION_ID. Present for a BRANCHING decide screen, where the choice
+   * is made here and each option needs its own verdict.
+   */
+  options?: DecideOption[];
   cta: string;
 }
 
@@ -147,12 +159,19 @@ export interface Verdict {
    *  Decide shows a consequence, not a grade (Section 5). */
   tone: 'cost' | 'good';
   title: RichText;
+  /**
+   * Optional itemised consequence, shown above the body. Used where the
+   * outcome is a sequence rather than a single number — a month of shocks
+   * arriving on particular days reads as a timeline, not a paragraph.
+   */
+  lines?: RichText[];
   body: RichText;
 }
 
 export interface FeedbackCopy {
   kicker: RichText;
-  /** Keyed by DecideOption.id. Every option must have a verdict. */
+  /** Keyed by DecideOption.id, or by COMMIT_OPTION_ID on a committing
+   *  Decide screen. Every reachable option must have a verdict. */
   verdicts: Record<string, Verdict>;
   myth: {
     /** The false belief, rendered struck through. */
