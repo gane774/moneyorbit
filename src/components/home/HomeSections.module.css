@@ -1,0 +1,273 @@
+/* Homepage narrative sections (Sections 14-20).
+   Everything here uses the established MoneyOrbit tokens -- no new palette,
+   no new fonts. Restraint is deliberate: the brief asks for spacious, and
+   the fix for "feels empty" is interaction, not more text. */
+
+.wrap{background:var(--canvas)}
+
+.sec{
+  max-width:760px;
+  margin:0 auto;
+  padding:104px 24px;
+  border-top:1px solid var(--ink-12);
+}
+.sec:first-child{border-top:none}
+
+.kicker{
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--ink-35);
+  margin-bottom:18px;
+}
+
+.h2{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(28px,5vw,44px);
+  line-height:1.06;
+  letter-spacing:-.02em;
+  max-width:20ch;
+  margin:0 0 14px;
+}
+
+.lede{
+  font-size:16.5px;
+  line-height:1.55;
+  color:var(--ink-60);
+  max-width:48ch;
+  margin:0 0 36px;
+}
+
+/* ---------- generic reveal row (consequences + nobody-teaches) ---------- */
+
+.row{
+  display:block;
+  width:100%;
+  text-align:left;
+  background:none;
+  border:none;
+  border-bottom:1px solid var(--ink-12);
+  padding:20px 0;
+  cursor:pointer;
+  font:inherit;
+  color:inherit;
+}
+.row:last-of-type{border-bottom:none}
+
+.rowHead{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:16px;
+}
+.rowQ{
+  font-size:17px;
+  font-weight:600;
+  line-height:1.35;
+}
+.rowMark{
+  font-family:var(--font-mono);
+  font-size:18px;
+  color:var(--ink-35);
+  flex:0 0 auto;
+  transition:transform .22s ease,color .22s ease;
+}
+.row[aria-expanded="true"] .rowMark{transform:rotate(45deg);color:var(--danger)}
+
+.rowBody{
+  overflow:hidden;
+  max-height:0;
+  opacity:0;
+  transition:max-height .3s ease,opacity .25s ease,margin-top .3s ease;
+}
+.row[aria-expanded="true"] .rowBody{max-height:220px;opacity:1;margin-top:12px}
+.rowBodyInner{
+  font-size:15.5px;
+  line-height:1.55;
+  color:var(--ink-60);
+  max-width:52ch;
+  border-left:2px solid var(--n200);
+  padding-left:14px;
+}
+
+/* ---------- the 45-minute journey map ---------- */
+
+.mapMeta{
+  display:flex;
+  gap:28px;
+  margin-bottom:30px;
+  flex-wrap:wrap;
+}
+.mapStat b{
+  display:block;
+  font-family:var(--font-mono);
+  font-size:26px;
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+}
+.mapStat span{
+  font-size:12.5px;
+  color:var(--ink-60);
+}
+
+.map{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
+  gap:8px;
+}
+.stop{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  padding:11px 12px;
+  border:1px solid var(--ink-12);
+  border-radius:10px;
+  background:var(--paper);
+}
+.stopNum{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--ink-35);
+  flex:0 0 auto;
+}
+.stopName{font-size:13.5px;font-weight:500;line-height:1.2}
+.stopDot{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+
+/* ---------- the loan question ---------- */
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.opts{grid-template-columns:1fr}}
+
+.opt{
+  text-align:left;
+  border:1.5px solid var(--ink-12);
+  border-radius:12px;
+  padding:18px;
+  background:var(--paper);
+  cursor:pointer;
+  font:inherit;
+  color:inherit;
+  transition:border-color .18s,box-shadow .18s;
+}
+.opt:hover{border-color:var(--ink-35)}
+.opt.picked{border-color:var(--ink);box-shadow:0 0 0 3px rgba(21,24,15,.06)}
+.optLabel{font-family:var(--font-mono);font-size:11px;color:var(--ink-35);margin-bottom:7px}
+.optEmi{
+  font-family:var(--font-mono);
+  font-size:25px;
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+  line-height:1.1;
+}
+.optTerm{font-size:13px;color:var(--ink-60);margin-top:5px}
+
+.reveal{
+  margin-top:22px;
+  border-radius:12px;
+  border:1px solid rgba(178,58,46,.25);
+  background:rgba(178,58,46,.06);
+  padding:20px;
+}
+.revealTitle{font-weight:700;font-size:16px;margin-bottom:12px}
+.revealRow{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  padding:7px 0;
+  font-size:14.5px;
+  border-bottom:1px solid var(--ink-12);
+}
+.revealRow:last-of-type{border-bottom:none}
+.revealRow b{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-weight:500}
+.revealPunch{
+  margin-top:14px;
+  font-size:15.5px;
+  line-height:1.5;
+}
+.note{
+  margin-top:14px;
+  font-size:12.5px;
+  color:var(--ink-60);
+  font-style:italic;
+}
+
+/* ---------- myth vs reality ---------- */
+
+.myths{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:640px){.myths{grid-template-columns:1fr}}
+
+.myth{
+  position:relative;
+  text-align:left;
+  border:1.5px solid var(--ink-12);
+  border-radius:12px;
+  padding:20px;
+  min-height:150px;
+  background:var(--paper);
+  cursor:pointer;
+  font:inherit;
+  color:inherit;
+  transition:border-color .2s,background .2s;
+}
+.myth[aria-pressed="true"]{border-color:var(--good);background:rgba(46,122,87,.05)}
+.mythTag{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  margin-bottom:9px;
+  color:var(--danger);
+}
+.myth[aria-pressed="true"] .mythTag{color:var(--good)}
+.mythText{font-size:15.5px;line-height:1.45}
+.mythFlip{
+  margin-top:12px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--ink-35);
+}
+
+/* ---------- closing ---------- */
+
+.close{
+  background:var(--ink);
+  color:var(--paper);
+  padding:104px 24px;
+  text-align:center;
+}
+.closeInner{max-width:640px;margin:0 auto}
+.closeH{
+  font-family:var(--font-display);
+  font-weight:800;
+  font-size:clamp(30px,6vw,52px);
+  line-height:1.04;
+  letter-spacing:-.025em;
+  margin:0 0 16px;
+}
+.closeP{font-size:16.5px;color:var(--paper-60);line-height:1.55;margin:0 auto 34px;max-width:46ch}
+.closeBtn{
+  display:inline-block;
+  padding:15px 30px;
+  border-radius:11px;
+  border:none;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:inherit;
+  font-weight:600;
+  font-size:15.5px;
+  cursor:pointer;
+}
+.closeSub{
+  margin-top:16px;
+  font-family:var(--font-mono);
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--paper-45);
+}
+
+@media(prefers-reduced-motion:reduce){
+  .rowBody,.rowMark,.opt,.myth{transition:none}
+}

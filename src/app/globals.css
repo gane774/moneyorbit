@@ -9,8 +9,12 @@
   --canvas:#EFF0EA;
   --paper:#FBFBF8;
   --ink:#15180F;
-  --ink-60:rgba(21,24,15,.62);
-  --ink-35:rgba(21,24,15,.34);
+  /* WCAG AA (4.5:1) verified against both --canvas and --paper.
+     These two move together: --ink-35 needs ~.62 to pass, which is exactly
+     what --ink-60 used to be, so --ink-60 was raised too rather than let
+     the secondary and tertiary tiers become the same colour. */
+  --ink-60:rgba(21,24,15,.80);   /* 8.76:1 on canvas — secondary text */
+  --ink-35:rgba(21,24,15,.64);   /* 5.11:1 on canvas — tertiary text  */
   --ink-12:rgba(21,24,15,.12);
 
   /* LOAD-BEARING — never decorative */

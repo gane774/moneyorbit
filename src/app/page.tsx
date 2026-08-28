@@ -1,6 +1,7 @@
-import Link from 'next/link';
 import { TOTAL_JOURNEYS, TOTAL_MINUTES } from '@/content/journeys';
 import FlowOfMoney from '@/components/FlowOfMoney';
+import HeroCta from '@/components/home/HeroCta';
+import HomeSections from '@/components/home/HomeSections';
 
 /** Section 3: static hero first (light), then the animation (dark),
  *  which resolves into its own CTA. The light-dark-light transition
@@ -58,8 +59,8 @@ export default function Landing() {
           You will not read a textbook — you will make decisions and watch what they cost.
         </p>
 
-        <div style={{ marginTop: 32, maxWidth: 260 }}>
-          <Link href="/onboarding"><button className="btn">Start learning</button></Link>
+        <div style={{ marginTop: 32, maxWidth: 300 }}>
+          <HeroCta />
         </div>
 
         <p
@@ -77,6 +78,7 @@ export default function Landing() {
       </section>
 
       <FlowOfMoney />
+      <HomeSections />
     </>
   );
 }

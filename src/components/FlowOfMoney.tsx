@@ -371,7 +371,7 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
             </defs>
 
             {/* Background */}
-            <rect width="100%" height="100%" fill="var(--ink)" />
+            <rect width="100%" height="100%" fill="var(--flow-ink)" />
             
             {/* Camera Group (Moves inverse to particle to keep it centered) */}
             <g id="camera">
@@ -635,7 +635,7 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
 
             {/* Fixed UI Layer (Appears at the end) */}
             <g id="final-ui" opacity="0" pointerEvents="none">
-                <rect width="1920" height="1080" fill="var(--ink)" opacity="0.6"/>
+                <rect width="1920" height="1080" fill="var(--flow-ink)" opacity="0.6"/>
                 <text x="960" y="450" textAnchor="middle" fill="var(--paper)" fontSize="72" fontWeight="800" letterSpacing="-1">NOW YOU SEE HOW MONEY MOVES.</text>
                 <text x="960" y="520" textAnchor="middle" fill="var(--paper-60)" fontSize="32">Everything is connected. Your choices shape the flow.</text>
                 

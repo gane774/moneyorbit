@@ -14,7 +14,12 @@
      narrative -- it raises the density of what happens per screen. */
   height:800vh;
   height:800svh;
-  background:var(--ink);
+
+  /* Animation-only neutral dark. --ink (#15180F) is an olive-tinted black
+     and reads green across a full-bleed scene; the lesson screens keep it.
+     Scoped here deliberately and by explicit request. --paper on this: 17.9:1. */
+  --flow-ink:#121316;
+  background:var(--flow-ink);
 
   /* Borders only. There is deliberately no animation-only surface token here:
      the SVG uses --ink-surface, the same dark surface the lesson screens use,
@@ -38,7 +43,7 @@
 
 /* reduced motion fallback */
 .reducedWrap{
-  background:var(--ink);
+  background:var(--flow-ink);
   color:var(--paper);
   padding:96px 24px;
   text-align:center;
