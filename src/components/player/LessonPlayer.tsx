@@ -186,9 +186,12 @@ export default function LessonPlayer({
     void logEvent('experience_completed', experience.id, age, { correct });
     void logEvent('journey_completed', journey.id, age);
 
+    /* Hand over to the next journey rather than dropping the student back on
+       the dashboard: the fixed order is pedagogical, and the transition is
+       where that relationship gets stated (Section 26). */
     const upcoming = nextJourney(journey.slug);
     if (!upcoming) void logEvent('course_completed', null, age);
-    router.push(upcoming ? `/home?done=${journey.slug}` : '/complete');
+    router.push(upcoming ? `/handoff?from=${journey.slug}` : '/complete');
   };
 
   /* Each mechanic receives the callback and decides for itself when the

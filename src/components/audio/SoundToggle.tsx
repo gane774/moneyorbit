@@ -83,8 +83,8 @@ export default function SoundToggle() {
         aria-label={enabled ? 'Sound on — tap to adjust, double-tap to mute' : 'Sound off — tap to unmute'}
         title={enabled ? 'Sound on' : 'Sound off'}
         style={{
-          width: 28,
-          height: 28,
+          width: 44,
+          height: 44,
           borderRadius: '50%',
           border: 'none',
           background: 'transparent',

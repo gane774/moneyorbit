@@ -36,7 +36,7 @@ export default function LifeSim() {
     <main className="sheet">
       <button
         onClick={() => router.push('/lab')}
-        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--ink-60)', fontSize: 13, marginBottom: 14 }}
+        className="backLink"
       >
         ← Money Lab
       </button>

@@ -68,6 +68,15 @@ export default function Login() {
           >
             Create an account instead
           </button>
+          <button
+            onClick={() => router.push('/recover')}
+            style={{
+              background: 'none', border: 'none', padding: '14px 0 0', cursor: 'pointer',
+              fontSize: 13, color: 'var(--ink-60)', width: '100%',
+            }}
+          >
+            Forgot your password?
+          </button>
         </div>
       </div>
     </main>

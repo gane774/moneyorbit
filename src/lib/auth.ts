@@ -36,6 +36,11 @@ export type AuthResult =
   | { ok: true; studentId: string; ageBand: AgeBand }
   | { ok: false; error: string };
 
+function lockedMessage(seconds: number): string {
+  const mins = Math.max(1, Math.ceil(seconds / 60));
+  return `Too many attempts. Try again in about ${mins} minute${mins === 1 ? '' : 's'}.`;
+}
+
 /** Maps Supabase's raw messages to something a 13-year-old can act on. */
 function friendly(message: string): string {
   const m = message.toLowerCase();
@@ -98,11 +103,32 @@ export async function signUp(input: SignUpInput): Promise<AuthResult> {
 
 export async function signIn(username: string, password: string): Promise<AuthResult> {
   const sb = supabase();
+  const uname = username.trim().toLowerCase();
+
+  /* Checked before the password is sent, so a locked account cannot be used to
+     keep probing. Enforced in Postgres, not here -- a lockout the browser
+     enforces is not a lockout, because the attacker controls the browser. */
+  const { data: lockRows } = await sb.rpc('is_auth_locked', { p_username: uname });
+  const lock = Array.isArray(lockRows) ? lockRows[0] : lockRows;
+  if (lock?.locked) {
+    return { ok: false, error: lockedMessage(lock.remaining_seconds as number) };
+  }
+
   const { error } = await sb.auth.signInWithPassword({
-    email: usernameToEmail(username),
+    email: usernameToEmail(uname),
     password,
   });
-  if (error) return { ok: false, error: friendly(error.message) };
+
+  const { data: afterRows } = await sb.rpc('record_auth_attempt', {
+    p_username: uname,
+    p_succeeded: !error,
+  });
+  const after = Array.isArray(afterRows) ? afterRows[0] : afterRows;
+
+  if (error) {
+    if (after?.locked) return { ok: false, error: lockedMessage(after.remaining_seconds as number) };
+    return { ok: false, error: friendly(error.message) };
+  }
 
   const me = await currentStudent();
   if (!me) return { ok: false, error: 'Signed in, but your profile is missing.' };
@@ -162,4 +188,20 @@ export async function logEvent(
   } catch {
     /* analytics is best-effort by design */
   }
+}
+
+/**
+ * Recovery check (Section 4). The auth address is synthetic and receives no
+ * mail, so recovery runs through the contact detail given at sign-up.
+ *
+ * The RPC returns only true/false: it never confirms whether a username exists
+ * on its own, and never echoes the stored contact back, so this cannot be used
+ * to enumerate accounts or harvest contact details.
+ */
+export async function verifyRecoveryContact(username: string, contact: string): Promise<boolean> {
+  const { data } = await supabase().rpc('verify_recovery_contact', {
+    p_username: username.trim().toLowerCase(),
+    p_contact: contact.trim(),
+  });
+  return data === true;
 }
