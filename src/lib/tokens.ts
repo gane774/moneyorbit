@@ -1,4 +1,5 @@
-import { computeLoan, inr } from './money';
+import { compound, computeLoan, inr } from './money';
+import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 
@@ -97,5 +98,19 @@ export function allocateTokens(
     // "Day 6 — your water bottle cracks. {{ev1}}." — without the day and
     // amount risking drift from what the mechanic actually generated.
     ...Object.fromEntries(p.events.map((e, i) => [`ev${i + 1}`, inr(e.amount)])),
+  };
+}
+
+/** Derived figures for the choice-fastforward mechanic (J1). */
+export function choiceFastforwardTokens(p: ChoiceFastforwardParams): Record<string, string> {
+  const fv = compound(p.itemCost, p.rate, p.years);
+  return {
+    item: p.itemLabel,
+    cost: inr(p.itemCost),
+    years: String(p.years),
+    rate: `${p.rate}%`,
+    landingAge: String(p.landingAge),
+    fv: inr(fv),
+    growth: inr(fv - p.itemCost),
   };
 }

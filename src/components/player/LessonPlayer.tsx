@@ -8,7 +8,8 @@ import {
 } from '@/content/types';
 import { JOURNEY_BY_ID, nextJourney } from '@/content/journeys';
 import { variantFor } from '@/content/experiences';
-import { allocateTokens, emiTokens } from '@/lib/tokens';
+import { allocateTokens, choiceFastforwardTokens, emiTokens } from '@/lib/tokens';
+import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 import * as P from '@/lib/progress';
@@ -17,6 +18,7 @@ import {
   DecideScreen, ExplainScreen, FeedbackScreen, HookScreen, InteractScreen, PracticeScreen,
 } from './Screens';
 import AllocateEvents from './mechanics/AllocateEvents';
+import ChoiceFastforward from './mechanics/ChoiceFastforward';
 import EmiSlider from './mechanics/EmiSlider';
 import PlaceholderMechanic from './mechanics/PlaceholderMechanic';
 
@@ -81,6 +83,9 @@ export default function LessonPlayer({
         variant.params as unknown as AllocateParams,
         committing ? allocation : undefined,
       );
+    }
+    if (experience.mechanicType === 'choice-fastforward' && variant) {
+      return choiceFastforwardTokens(variant.params as unknown as ChoiceFastforwardParams);
     }
     return {};
   }, [experience.mechanicType, variant, allocation]);
@@ -154,6 +159,12 @@ export default function LessonPlayer({
         labels={copy.interact.labels}
         allocation={allocation}
         onAllocationChange={setAllocation}
+        onExplored={onExplored}
+      />
+    ) : experience.mechanicType === 'choice-fastforward' ? (
+      <ChoiceFastforward
+        params={variant.params as unknown as ChoiceFastforwardParams}
+        labels={copy.interact.labels}
         onExplored={onExplored}
       />
     ) : (
