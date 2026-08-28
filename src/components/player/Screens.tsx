@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { rich } from '@/lib/rich';
+import { shuffle } from '@/lib/shuffle';
 import { resolveTokens } from '@/lib/tokens';
 import { useAudio } from '@/lib/audio/useAudio';
 import { Kicker, PlaceholderBadge } from './PlayerChrome';
@@ -202,11 +203,18 @@ export function PracticeScreen({
   const [checked, setChecked] = useState(false);
   const { play } = useAudio();
 
-  const chosen = copy.options.find((o) => o.id === sel);
+  /* Shuffled once per mount, in a lazy initialiser so it is stable while the
+     student is answering and does not reorder under them on every re-render.
+     Scoring reads option ids, never positions, so display order is free to
+     change. This screen renders only on the client (LessonGate holds back
+     until its effect runs), so there is no hydration order to mismatch. */
+  const options = useState(() => shuffle(copy.options))[0];
+
+  const chosen = options.find((o) => o.id === sel);
 
   const cls = (id: string) => {
     if (!checked) return sel === id ? 'choice sel' : 'choice';
-    const o = copy.options.find((x) => x.id === id)!;
+    const o = options.find((x) => x.id === id)!;
     if (o.correct) return 'choice correct';
     return id === sel ? 'choice wrong' : 'choice';
   };
@@ -218,7 +226,7 @@ export function PracticeScreen({
       <h2 className="h-mid" style={{ marginBottom: 16 }}>{rich(T(copy.prompt, tokens))}</h2>
 
       <div role="radiogroup" aria-label="Answer">
-        {copy.options.map((o) => (
+        {options.map((o) => (
           <button
             key={o.id}
             type="button"
