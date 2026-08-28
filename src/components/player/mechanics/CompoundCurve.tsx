@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react';
 import { compound, inr, realValue } from '@/lib/money';
+import { useSliderTick } from '@/lib/audio/useSliderTick';
 import type { MechanicProps } from '@/content/types';
 import type { CompoundCurveParams } from '@/content/experiences/j07-math';
 
@@ -14,6 +15,8 @@ export default function CompoundCurve({
   const [rate, setRate] = useState(params.rate.default);
   const [startAge, setStartAge] = useState(params.startAge.default);
   const [touched, setTouched] = useState(false);
+  const tickRate = useSliderTick(params.rate.min, params.rate.max);
+  const tickStartAge = useSliderTick(params.startAge.min, params.startAge.max);
 
   const years = params.untilAge - startAge;
   const finalValue = compound(params.principal, rate, years);
@@ -43,7 +46,7 @@ export default function CompoundCurve({
           id={`${uid}-rate`} type="range"
           min={params.rate.min} max={params.rate.max} step={params.rate.step}
           value={rate}
-          onChange={(e) => { setRate(+e.target.value); touch(); }}
+          onChange={(e) => { const v = +e.target.value; setRate(v); tickRate(v); touch(); }}
           aria-valuetext={`${rate} percent`}
         />
       </div>
@@ -57,7 +60,7 @@ export default function CompoundCurve({
           id={`${uid}-age`} type="range"
           min={params.startAge.min} max={params.startAge.max} step={params.startAge.step}
           value={startAge}
-          onChange={(e) => { setStartAge(+e.target.value); touch(); }}
+          onChange={(e) => { const v = +e.target.value; setStartAge(v); tickStartAge(v); touch(); }}
           aria-valuetext={`starting at age ${startAge}`}
         />
       </div>

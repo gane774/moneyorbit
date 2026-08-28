@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { rich } from '@/lib/rich';
 import { resolveTokens } from '@/lib/tokens';
+import { useAudio } from '@/lib/audio/useAudio';
 import { Kicker, PlaceholderBadge } from './PlayerChrome';
 import { COMMIT_OPTION_ID, isPlaceholderText, stripPlaceholder } from '@/content/types';
 import type {
@@ -199,6 +200,7 @@ export function PracticeScreen({
 }) {
   const [sel, setSel] = useState<string | null>(null);
   const [checked, setChecked] = useState(false);
+  const { play } = useAudio();
 
   const chosen = copy.options.find((o) => o.id === sel);
 
@@ -245,7 +247,16 @@ export function PracticeScreen({
 
       <div className="spacer" />
       {!checked ? (
-        <button className="btn" disabled={!sel} onClick={() => setChecked(true)}>
+        <button
+          className="btn"
+          disabled={!sel}
+          onClick={() => {
+            // Fire only after correctness is known (Section 7) — `chosen`
+            // above is already resolved from `sel` at this point.
+            setChecked(true);
+            play(chosen?.correct ? 'quiz_correct' : 'quiz_incorrect');
+          }}
+        >
           {T(copy.cta, tokens)}
         </button>
       ) : (

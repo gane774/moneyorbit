@@ -347,6 +347,7 @@ input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--indigo
   background:var(--paper);color:var(--ink);font-family:inherit;font-size:16px;
 }
 .field input:focus,.field select:focus{border-color:var(--ink);outline:none}
+.field .hint{color:var(--ink-60);font-size:12.5px;margin-top:6px;line-height:1.4}
 .field .err{color:var(--danger);font-size:12.5px;margin-top:6px}
 
 /* ---------- accessibility ---------- */

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque, Instrument_Sans, DM_Mono } from 'next/font/google';
 import './globals.css';
+import AudioMount from '@/components/audio/AudioMount';
 
 /* Three roles, no more (Section 2). */
 const display = Bricolage_Grotesque({
@@ -45,7 +46,10 @@ export default function RootLayout({
       lang="en"
       className={`${display.variable} ${body.variable} ${mono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <AudioMount />
+      </body>
     </html>
   );
 }

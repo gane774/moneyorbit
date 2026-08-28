@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { resolveStartDestination } from '@/lib/startDestination';
+import { fireCrossedCues, type ScrollCue } from '@/lib/audio/scrollCues';
 import styles from './FlowOfMoney.module.css';
 
 /**
@@ -40,6 +41,7 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
     let cleanup = () => {};
     let target = 0;
     let current = 0;
+    let prevProgress = 0;
 
     (async () => {
       const { gsap } = await import('gsap');
@@ -269,6 +271,32 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
 
   // Make all scenes fully visible again for the overview
   tl.to(["#scene-earn", "#scene-mindset", "#scene-budget", "#scene-bank", "#scene-save", "#scene-credit", "#scene-math", "#scene-invest", "#scene-dest", "#scene-scam"], { opacity: 0.8, duration: 3 }, "zoom");
+
+      /* Section 6: sound at meaningful narrative milestones only, not every
+         frame. The timeline already names every journey node as a GSAP
+         label ("earn", "mindset", ... "zoom") — reuse those exact times
+         rather than inventing separate percentage thresholds, so this list
+         stays correct even if the choreography above is retimed later.
+         `node_arrive` is reused for earn/budget/dest, same as the spec's
+         own example reuses one cue for several generic arrivals. */
+      const duration = tl.duration();
+      const cueAt = (label: string) => (tl.labels[label] ?? 0) / duration;
+      const cues: ScrollCue[] = [
+        { progress: 0.001, event: 'flow_start' },
+        { progress: cueAt('earn'), event: 'node_arrive' },
+        { progress: cueAt('mindset'), event: 'branch' },
+        { progress: cueAt('budget'), event: 'node_arrive' },
+        { progress: cueAt('bank'), event: 'payment' },
+        { progress: cueAt('save'), event: 'saving' },
+        { progress: cueAt('credit'), event: 'credit' },
+        { progress: cueAt('math'), event: 'compounding' },
+        { progress: cueAt('invest'), event: 'investing' },
+        { progress: cueAt('dest'), event: 'node_arrive' },
+        { progress: cueAt('scam'), event: 'warning' },
+        { progress: cueAt('zoom'), event: 'finale' },
+      ];
+      cues.sort((a, b) => a.progress - b.progress);
+
       const onScroll = () => {
         const el = sectionRef.current;
         if (!el) return;
@@ -299,6 +327,8 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
           current += diff * 0.08;
           tl.progress(current);
         }
+        fireCrossedCues(prevProgress, current, cues);
+        prevProgress = current;
         raf = requestAnimationFrame(render);
       };
       render();

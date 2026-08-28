@@ -24,6 +24,9 @@ import type { CompoundCurveParams } from '@/content/experiences/j07-math';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 import * as P from '@/lib/progress';
+import { pushProgress } from '@/lib/sync';
+import { logEvent } from '@/lib/auth';
+import { useAudio } from '@/lib/audio/useAudio';
 import { TopBar } from './PlayerChrome';
 import {
   DecideScreen, ExplainScreen, FeedbackScreen, HookScreen, InteractScreen, PracticeScreen,
@@ -49,6 +52,7 @@ export default function LessonPlayer({
   band: AgeBand;
 }) {
   const router = useRouter();
+  const { play } = useAudio();
   const journey = JOURNEY_BY_ID.get(experience.journeyId)!;
   const variant = variantFor(experience, band);
 
@@ -71,6 +75,7 @@ export default function LessonPlayer({
   /* Mark concepts introduced as soon as the lesson opens. */
   useEffect(() => {
     if (!hydrated) return;
+    void logEvent('experience_started', experience.id, P.load().age ?? 0);
     P.update((p) => P.advanceMany(
       { ...p, startedAt: p.startedAt ?? new Date().toISOString() },
       experience.concepts,
@@ -156,6 +161,11 @@ export default function LessonPlayer({
   };
 
   const onComplete = (_optionId: string, correct: boolean) => {
+    // Section 8: this is the one call site for "a lesson experience was
+    // completed" — distinct from, and in addition to, the quiz_correct /
+    // quiz_incorrect sound already played for the individual answer.
+    play('task_complete');
+
     P.update((p) => {
       const withMastery = correct
         ? P.advanceMany(p, experience.concepts, 'understood')
@@ -168,7 +178,16 @@ export default function LessonPlayer({
       return { ...withMastery, completed, resume };
     });
 
+    /* Persist to Postgres, but do not make the student wait on it: the local
+       copy is already correct and authoritative for resuming. A network
+       failure here costs an analytics row, never a completed lesson. */
+    const age = P.load().age ?? 0;
+    void pushProgress();
+    void logEvent('experience_completed', experience.id, age, { correct });
+    void logEvent('journey_completed', journey.id, age);
+
     const upcoming = nextJourney(journey.slug);
+    if (!upcoming) void logEvent('course_completed', null, age);
     router.push(upcoming ? `/home?done=${journey.slug}` : '/complete');
   };
 

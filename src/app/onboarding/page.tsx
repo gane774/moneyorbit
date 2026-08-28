@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { bandForAge } from '@/content/types';
 import * as P from '@/lib/progress';
+import { signUp, USERNAME_RE } from '@/lib/auth';
 
 /** Section 9: username, full name, exact age, and either email or phone.
  *  Split into three beats so it reads as a short flow, not a form.
@@ -17,6 +18,8 @@ export default function Onboarding() {
   const [username, setUsername] = useState('');
   const [age, setAge] = useState('');
   const [contact, setContact] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
   const ageNum = parseInt(age, 10);
@@ -24,15 +27,42 @@ export default function Onboarding() {
   const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.trim());
   const validPhone = /^[+]?[\d\s-]{10,15}$/.test(contact.trim());
 
-  const finish = () => {
+  const finish = async () => {
     if (!validEmail && !validPhone) {
       setErr('Enter an email address or a phone number we can reach you on.');
       return;
     }
+    if (password.length < 8) {
+      setErr('Password must be at least 8 characters.');
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+
+    const res = await signUp({
+      username: username.trim().toLowerCase(),
+      password,
+      fullName: fullName.trim(),
+      age: ageNum,
+      contactMethod: validEmail ? 'email' : 'phone',
+      contactValue: contact.trim(),
+    });
+
+    if (!res.ok) {
+      setBusy(false);
+      setErr(res.error);
+      return;
+    }
+
+    /* localStorage stays the source of truth for an in-progress lesson so a
+       refresh resumes instantly without waiting on the network. It now also
+       carries the studentId, which is what links this device's progress to the
+       account when it syncs. */
     P.update((p) => ({
       ...p,
+      studentId: res.studentId,
       fullName: fullName.trim(),
-      username: username.trim(),
+      username: username.trim().toLowerCase(),
       age: ageNum,
       ageBand: bandForAge(ageNum),
     }));
@@ -126,11 +156,36 @@ export default function Onboarding() {
                   onChange={(e) => { setContact(e.target.value); setErr(null); }}
                   placeholder="you@example.com"
                 />
+              </div>
+
+              <div className="field" style={{ marginTop: 16 }}>
+                <label htmlFor="pw">Pick a password</label>
+                <input
+                  id="pw" type="password" value={password} autoComplete="new-password"
+                  onChange={(e) => { setPassword(e.target.value); setErr(null); }}
+                  placeholder="At least 8 characters"
+                />
+                <div className="hint">
+                  You will sign in with <b>{username.trim().toLowerCase() || 'your username'}</b> and this password.
+                </div>
                 {err && <div className="err">{err}</div>}
               </div>
 
               <div className="spacer" />
-              <button className="btn" onClick={finish}>Start learning</button>
+              <button
+                className="btn"
+                disabled={busy || password.length < 8}
+                onClick={finish}
+              >
+                {busy ? 'Creating your account…' : 'Create account'}
+              </button>
+              <button
+                className="btn ghost"
+                style={{ marginTop: 10 }}
+                onClick={() => router.push('/login')}
+              >
+                I already have an account
+              </button>
             </>
           )}
 

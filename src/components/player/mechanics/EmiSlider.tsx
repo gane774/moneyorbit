@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react';
 import { computeLoan, inr } from '@/lib/money';
+import { useSliderTick } from '@/lib/audio/useSliderTick';
 import type { MechanicProps } from '@/content/types';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 
@@ -23,6 +24,9 @@ export default function EmiSlider({
   const [rate, setRate] = useState(params.rate.default);
   const [years, setYears] = useState(params.years.default);
   const [touched, setTouched] = useState(false);
+  const tickAmount = useSliderTick(params.amount.min, params.amount.max);
+  const tickRate = useSliderTick(params.rate.min, params.rate.max);
+  const tickYears = useSliderTick(params.years.min, params.years.max);
 
   const loan = computeLoan(amount, rate, years);
 
@@ -49,7 +53,7 @@ export default function EmiSlider({
           max={params.amount.max}
           step={params.amount.step}
           value={amount}
-          onChange={(e) => { setAmount(+e.target.value); touch(); }}
+          onChange={(e) => { const v = +e.target.value; setAmount(v); tickAmount(v); touch(); }}
           aria-valuetext={inr(amount)}
         />
       </div>
@@ -66,7 +70,7 @@ export default function EmiSlider({
           max={params.rate.max}
           step={params.rate.step}
           value={rate}
-          onChange={(e) => { setRate(+e.target.value); touch(); }}
+          onChange={(e) => { const v = +e.target.value; setRate(v); tickRate(v); touch(); }}
           aria-valuetext={`${rate} percent`}
         />
       </div>
@@ -83,7 +87,7 @@ export default function EmiSlider({
           max={params.years.max}
           step={params.years.step}
           value={years}
-          onChange={(e) => { setYears(+e.target.value); touch(); }}
+          onChange={(e) => { const v = +e.target.value; setYears(v); tickYears(v); touch(); }}
           aria-valuetext={`${years} years`}
         />
       </div>
