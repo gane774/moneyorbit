@@ -14,7 +14,21 @@ export default function Lab() {
   return (
     <main className="sheet">
       <div className="kicker" style={{ color: 'var(--ink-35)' }}>Money Lab</div>
-      <h1 className="h-mid" style={{ marginBottom: 8 }}>Free-play tools, coming soon.</h1>
+      <h1 className="h-mid" style={{ marginBottom: 8 }}>Free-play tools.</h1>
+
+      <button
+        className="choice"
+        style={{ marginTop: 14, marginBottom: 22 }}
+        onClick={() => router.push('/lab/life')}
+      >
+        <div className="ct">Life simulator</div>
+        <div className="cs">
+          Start at 18 on ₹35,000 a month. Make the calls, meet the surprises,
+          see what they cost. Fictional throughout.
+        </div>
+      </button>
+
+      <div className="kicker" style={{ color: 'var(--ink-35)', marginBottom: 8 }}>Still to come</div>
       <p className="body-s" style={{ marginBottom: 20 }}>
         The Lab opens once the core run is stable. Everything here will be a tool
         you can pick up on its own, without a lesson around it.
