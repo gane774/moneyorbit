@@ -50,17 +50,14 @@ export default function Lab() {
         </button>
       ))}
 
-      <div className="sectionLabel">Still to come</div>
-      <div className="jrow locked" style={{ border: 'none' }}>
-        <span className="jdot" style={{ background: 'var(--ink-12)' }} />
-        <span className="jt">
-          Budget simulator
-          <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-60)', fontWeight: 400, marginTop: 2 }}>
-            Bank statement explorer
-          </span>
-        </span>
-        <span className="jm">Soon</span>
-      </div>
+      <button className="labCard" onClick={() => router.push('/lab/budget')}>
+        <div className="lt">Budget simulator</div>
+        <div className="lb">Your own income, your own categories — see what the plan actually means.</div>
+      </button>
+      <button className="labCard" onClick={() => router.push('/lab/statement')}>
+        <div className="lt">Bank statement explorer</div>
+        <div className="lb">A fictional month. Find the charges that are easy to scroll past.</div>
+      </button>
     </main>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { inr } from '@/lib/money';
 import type { MechanicProps } from '@/content/types';
 import type { AllocateParams } from '@/content/experiences/j03-budgeting';
@@ -29,7 +30,7 @@ export default function AllocateEvents({
 }: MechanicProps & {
   params: AllocateParams;
   allocation: Record<string, number>;
-  onAllocationChange: (next: Record<string, number>) => void;
+  onAllocationChange: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }) {
   const step = stepFor(params.pool);
   const allocated = params.categories.reduce((sum, c) => sum + (allocation[c.id] ?? 0), 0);
@@ -38,27 +39,34 @@ export default function AllocateEvents({
 
   const L = (k: string, fallback: string) => labels?.[k] ?? fallback;
 
-  const setAmount = (id: string, next: number) => {
-    const updated = { ...allocation, [id]: next };
-    onAllocationChange(updated);
-    const nowAllocated = params.categories.reduce((sum, c) => sum + (updated[c.id] ?? 0), 0);
-    if (params.pool - nowAllocated === 0) onExplored();
-  };
-
+  /* Functional update rather than reading `allocation` from the closure.
+     Several taps landing before the next render would otherwise all apply to
+     the same stale value, and every one after the first would be lost --
+     which on this mechanic means the student cannot reach exactly zero and
+     the CTA never unlocks. */
   const bump = (id: string, dir: 1 | -1) => {
-    const current = allocation[id] ?? 0;
-    if (dir === 1) {
-      setAmount(id, current + Math.min(step, remaining));
-    } else {
-      setAmount(id, Math.max(0, current - step));
-    }
+    onAllocationChange((prev) => {
+      const spent = params.categories.reduce((sum, c) => sum + (prev[c.id] ?? 0), 0);
+      const left = params.pool - spent;
+      const current = prev[id] ?? 0;
+      const next = dir === 1
+        ? current + Math.min(step, left)
+        : Math.max(0, current - step);
+      return { ...prev, [id]: next };
+    });
   };
 
   const useReferenceSplit = () => {
-    const reference = Object.fromEntries(params.categories.map((c) => [c.id, c.suggested]));
-    onAllocationChange(reference);
-    onExplored();
+    onAllocationChange(Object.fromEntries(params.categories.map((c) => [c.id, c.suggested])));
   };
+
+  /* Engagement is derived from the allocation actually landing at zero, not
+     announced from inside a click handler or a state updater -- so it stays
+     correct however the pool got assigned (steppers, the reference split, or
+     a later input we have not built yet). */
+  useEffect(() => {
+    if (remaining === 0 && allocated > 0) onExplored();
+  }, [remaining, allocated, onExplored]);
 
   return (
     <div>
