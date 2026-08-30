@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { inr } from '@/lib/money';
+import { shuffle } from '@/lib/shuffle';
 import type { MechanicProps } from '@/content/types';
 import type { MatchGoalParams } from '@/content/experiences/j09-destinations';
 
@@ -23,6 +24,15 @@ export default function MatchGoal({
   const [answers, setAnswers] = useState<Answer[]>([]);
 
   const goal = params.goals[index];
+
+  /* Reshuffled for every goal. Fixed order let a student notice the correct
+     instrument tended to sit in the same place and answer from position
+     rather than from goal + horizon + liquidity. Keyed on `index` so it is
+     stable while they are deciding and only changes when the goal does. */
+  const shownInstruments = useMemo(
+    () => shuffle(params.instruments),
+    [params.instruments, index],
+  );
   const answered = answers.find((a) => a.goalId === goal?.id);
   const finished = index >= params.goals.length;
 
@@ -67,14 +77,20 @@ export default function MatchGoal({
         ))}
       </div>
 
-      <div className="readout" style={{ borderTop: 'none', paddingTop: 0, marginBottom: 14 }}>
-        <div className="readline hero">
-          <span>{goal.goalLabel} — {goal.timeline}</span>
-          <b>{inr(goal.amount)}</b>
+      {/* The scenario is the screen, not a caption on it: a student should
+          understand what the money is for and how soon it is needed before
+          they even look at the options. */}
+      <div className="goalCard">
+        <div className="goalKicker">Your goal</div>
+        <div className="goalName">{goal.goalLabel}</div>
+        <div className="goalMeta">
+          <span><b>{inr(goal.amount)}</b> needed</span>
+          <span className="goalWhen">{goal.timeline}</span>
         </div>
+        <div className="goalAsk">Where should this money sit until then?</div>
       </div>
 
-      {!answered && params.instruments.map((inst) => (
+      {!answered && shownInstruments.map((inst) => (
         <button key={inst.id} type="button" className="choice" onClick={() => pick(inst.id)}>
           <div className="ct">{inst.label}</div>
           <div className="cs">{inst.line}</div>

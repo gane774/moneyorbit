@@ -7,6 +7,10 @@ import type { AllocatePortfolioParams, Bucket } from '@/content/experiences/j08-
 
 type RunResult = { bucketId: Bucket['id']; value: number };
 
+/** How many individual runs stay on screen. Beyond this the list is summarised
+ *  rather than extended, so the page cannot grow without bound. */
+const MAX_VISIBLE_RUNS = 4;
+
 /** One random annual return per year, compounded sequentially — a wide
  *  range like Risky (-10% to +25%) should feel genuinely unpredictable
  *  across five draws, not like a single dice roll smoothed into an average. */
@@ -61,16 +65,41 @@ export default function AllocatePortfolio({
         {labels?.run ?? 'Run 5 years'}
       </button>
 
-      {runsForActive.length > 0 && (
-        <div className="readout">
-          {runsForActive.map((r, i) => (
-            <div className="readline" key={i}>
-              <span>Run {i + 1}</span>
-              <b>{inr(r.value)}</b>
-            </div>
-          ))}
-        </div>
-      )}
+      {runsForActive.length > 0 && (() => {
+        /* Bounded on purpose. The previous version rendered one row per run
+           forever, so a student who experimented ten times pushed the Continue
+           button past the end of the page and could not get out of the
+           activity. Only the most recent few rows are shown; everything else
+           is folded into the spread, which is the more useful reading anyway
+           -- the lesson is the RANGE, not any individual run. */
+        const values = runsForActive.map((r) => r.value);
+        const recent = runsForActive.slice(-MAX_VISIBLE_RUNS);
+        const firstShown = runsForActive.length - recent.length;
+        const lo = Math.min(...values);
+        const hi = Math.max(...values);
+        return (
+          <div className="readout">
+            {runsForActive.length > MAX_VISIBLE_RUNS && (
+              <div className="readline" style={{ color: 'var(--ink-35)' }}>
+                <span>{runsForActive.length - MAX_VISIBLE_RUNS} earlier run
+                  {runsForActive.length - MAX_VISIBLE_RUNS === 1 ? '' : 's'} not shown</span>
+              </div>
+            )}
+            {recent.map((r, i) => (
+              <div className="readline" key={firstShown + i}>
+                <span>Run {firstShown + i + 1}</span>
+                <b>{inr(r.value)}</b>
+              </div>
+            ))}
+            {runsForActive.length > 1 && (
+              <div className="readline hero" style={{ marginTop: 4 }}>
+                <span>Range across {runsForActive.length} runs</span>
+                <b>{inr(lo)} – {inr(hi)}</b>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       <p className="sr-only" aria-live="polite">
         {runsForActive.length > 0

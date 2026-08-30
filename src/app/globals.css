@@ -441,3 +441,31 @@ input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--indigo
   padding:12px 14px;border-radius:99px;cursor:pointer;font-size:12.5px;
   font-family:inherit;min-height:44px;
 }
+
+/* ---------- destinations goal card (Section 14 of the content brief) ---------- */
+.goalCard{
+  border:1.5px solid var(--ink);border-radius:14px;padding:20px 18px;
+  background:var(--paper);margin-bottom:16px;
+}
+.goalKicker{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-35);margin-bottom:9px;
+}
+.goalName{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(20px,4.6vw,26px);line-height:1.15;letter-spacing:-.015em;
+  margin-bottom:10px;
+}
+.goalMeta{
+  display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;
+  font-size:14px;color:var(--ink-60);margin-bottom:12px;
+}
+.goalMeta b{font-family:var(--font-mono);font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.goalWhen{
+  border:1px solid var(--ink-12);border-radius:99px;padding:3px 10px;
+  font-size:12.5px;color:var(--ink);
+}
+.goalAsk{
+  font-size:14.5px;line-height:1.45;color:var(--ink);
+  border-top:1px solid var(--ink-12);padding-top:11px;
+}

@@ -1,4 +1,4 @@
-import { compound, computeLoan, inr } from './money';
+import { compound, computeLoan, futureValueMonthly, inr } from './money';
 import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
 import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
 import type { CompoundCurveParams } from '@/content/experiences/j07-math';
@@ -141,26 +141,38 @@ export function compareIncomeTokens(p: CompareIncomeParams): Record<string, stri
  *  measured from the same default start age, so the two levers are a fair
  *  side-by-side rather than an arbitrary pair of numbers. */
 export function compoundCurveTokens(p: CompoundCurveParams): Record<string, string> {
-  const baseAge = Math.min(p.startAge.max, p.startAge.default + 10);
-  const earlyAge = p.startAge.default;
-  const rate = p.rate.default;
-  const betterRate = rate + 2;
+  const { early, late, rate } = p.race;
+  const years = (startAge: number) => p.untilAge - startAge;
 
-  const fvEarlier = compound(p.principal, rate, p.untilAge - earlyAge);
-  const fvBetterRate = compound(p.principal, betterRate, p.untilAge - baseAge);
+  const earlyFv = futureValueMonthly(early.monthly, rate, years(early.startAge));
+  const lateFv  = futureValueMonthly(late.monthly,  rate, years(late.startAge));
+  const earlyPaid = early.monthly * 12 * years(early.startAge);
+  const latePaid  = late.monthly  * 12 * years(late.startAge);
 
   return {
     principal: inr(p.principal),
-    baseAge: String(baseAge),
-    earlyAge: String(earlyAge),
     untilAge: String(p.untilAge),
-    rate: `${rate}%`,
-    betterRate: `${betterRate}%`,
-    fvEarlier: inr(fvEarlier),
-    fvBetterRate: inr(fvBetterRate),
     inflation: `${p.inflation}%`,
+
+    earlyName: early.name,
+    lateName: late.name,
+    earlyStart: String(early.startAge),
+    lateStart: String(late.startAge),
+    earlyMonthly: inr(early.monthly),
+    lateMonthly: inr(late.monthly),
+    raceRate: `${rate}%`,
+
+    earlyFv: inr(earlyFv),
+    lateFv: inr(lateFv),
+    earlyPaid: inr(earlyPaid),
+    latePaid: inr(latePaid),
+    // Rounded before subtracting so the gap equals what the two figures
+    // printed beside it actually subtract to.
+    extraPaid: inr(Math.round(latePaid) - Math.round(earlyPaid)),
+    raceGap: inr(Math.round(earlyFv) - Math.round(lateFv)),
   };
 }
+
 
 /** Derived figures for the allocate-portfolio mechanic (J8). Static per
  *  params — the randomized run outcomes live in the mechanic itself, not
