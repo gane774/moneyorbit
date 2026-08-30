@@ -30,7 +30,7 @@ export const JOURNEYS: Journey[] = [
   { id: 'j10', slug: 'planning',         orderIndex: 10, colorToken: 'n100',  estimatedMinutes: 4,
     title: 'Planning Your Money Life',       shortTitle: 'Planning' },
   { id: 'j11', slug: 'scams',            orderIndex: 11, colorToken: 'n200',  estimatedMinutes: 4,
-    title: "Don't Get Scammed",              shortTitle: 'Scams' },
+    title: "Run a Financial Life",              shortTitle: 'Final' },
 ];
 
 export const JOURNEY_BY_SLUG = new Map(JOURNEYS.map((j) => [j.slug, j]));

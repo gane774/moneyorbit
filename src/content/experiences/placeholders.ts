@@ -129,7 +129,7 @@ const LOCKED_CTA: Record<MechanicType, string> = {
   'allocate-portfolio': 'Fill all three, then run it twice',
   'match-goal':         'Match every goal',
   'goal-planner':       'Add a goal to begin',
-  'spot-scam':          'Read each offer carefully',
+  'final-challenge':    'Finish the year first',
 };
 
 const SPECS: Spec[] = [
@@ -220,7 +220,7 @@ const SPECS: Spec[] = [
   },
   {
     id: 'e11', journeyId: 'j11', slug: 'spot-the-scam', title: 'Spot the Scam',
-    mechanicType: 'spot-scam',
+    mechanicType: 'final-challenge',
     concepts: ['scam-red-flags', 'guaranteed-returns', 'phishing-otp'],
     misconception: "Scams are obvious. That won't be me.",
     mechanicNote: 'Four fictional offers. Flag the red flags before the clock runs out.',

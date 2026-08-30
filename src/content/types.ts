@@ -43,7 +43,7 @@ export type MechanicType =
   | 'allocate-portfolio'   // J8  Pick Your Risk
   | 'match-goal'           // J9  Match the Goal
   | 'goal-planner'         // J10 Your Money Map
-  | 'spot-scam';           // J11 Spot the Scam
+  | 'final-challenge';     // J11 Run a Financial Life
 
 /**
  * The contract every mechanic implements.
@@ -67,7 +67,7 @@ export type MechanicType =
  *   allocate-portfolio  J8   all buckets allocated AND both runs played
  *   match-goal          J9   every goal has been matched to an instrument
  *   goal-planner        J10  at least one goal has an amount and a date
- *   spot-scam           J11  every offer judged, or the timer has expired
+ *   final-challenge     J11  the full year has been played out
  *
  * J8 deliberately requires BOTH runs: the lesson is that the same choice can
  * produce different outcomes, which one run cannot demonstrate.

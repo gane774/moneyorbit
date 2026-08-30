@@ -13,7 +13,7 @@ insert into journeys (id, slug, title, short_title, order_index, color_token, es
   ('j08', 'investing-basics', 'Investing Basics', 'Investing', 8, 'n10', 4),
   ('j09', 'destinations', 'Where Can Your Money Actually Go?', 'Destinations', 9, 'n50', 4),
   ('j10', 'planning', 'Planning Your Money Life', 'Planning', 10, 'n100', 4),
-  ('j11', 'scams', 'Don''t Get Scammed', 'Scams', 11, 'n200', 4)
+  ('j11', 'scams', 'Run a Financial Life', 'Final', 11, 'n200', 4)
 on conflict (id) do update set
   slug=excluded.slug, title=excluded.title, short_title=excluded.short_title,
   order_index=excluded.order_index, color_token=excluded.color_token, est_minutes=excluded.est_minutes;
@@ -60,7 +60,7 @@ on conflict (slug) do update set
 insert into experiences (id, journey_id, slug, title, mechanic_type, is_core, time_sensitive) values
   ('e01', 'j01', 'buy-it-now-or-wait', 'Buy It Now, or Wait?', 'choice-fastforward', true, false),
   ('e02', 'j02', 'two-ways-to-get-paid', 'Two Ways to Get Paid', 'compare-income', true, false),
-  ('e03', 'j03', 'can-you-survive-the-month', 'Can You Survive the Month?', 'allocate-events', true, false),
+  ('e03', 'j03', 'can-you-survive-the-month', 'What''s Wrong With This Budget?', 'find-problem', true, false),
   ('e04', 'j04', 'follow-the-500', 'Would You Approve This?', 'payment-decisions', true, false),
   ('e05', 'j05', 'the-rainy-day-test', 'The Rainy Day Test', 'parallel-shock', true, false),
   ('e06', 'j06', 'what-does-this-loan-really-cost', 'What Does This Loan Really Cost?', 'emi-slider', true, false),
@@ -68,7 +68,7 @@ insert into experiences (id, journey_id, slug, title, mechanic_type, is_core, ti
   ('e08', 'j08', 'pick-your-risk', 'Pick Your Risk', 'allocate-portfolio', true, false),
   ('e09', 'j09', 'match-the-goal', 'Match the Goal', 'match-goal', true, false),
   ('e10', 'j10', 'your-money-map', 'Your Money Map', 'goal-planner', true, false),
-  ('e11', 'j11', 'spot-the-scam', 'Spot the Scam', 'spot-scam', true, false)
+  ('e11', 'j11', 'final-challenge', 'Run a Financial Life', 'final-challenge', true, false)
 on conflict (id) do update set
   journey_id=excluded.journey_id, slug=excluded.slug, title=excluded.title,
   mechanic_type=excluded.mechanic_type, is_core=excluded.is_core, time_sensitive=excluded.time_sensitive;
@@ -103,7 +103,7 @@ insert into experience_concepts (experience_id, concept_slug) values
   ('e10', 'goal-setting'),
   ('e10', 'net-worth'),
   ('e10', 'time-horizon'),
-  ('e11', 'scam-red-flags'),
-  ('e11', 'guaranteed-returns'),
-  ('e11', 'phishing-otp')
+  ('e11', 'budgeting'),
+  ('e11', 'emergency-fund'),
+  ('e11', 'net-worth')
 on conflict do nothing;
