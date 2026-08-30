@@ -34,8 +34,8 @@ const CONSEQUENCES = [
     a: 'Paying the "minimum due" clears the warning, not the balance. What is left keeps growing while it waits.',
   },
   {
-    q: "You don't understand scams?",
-    a: 'A convincing message is designed to look convincing. The tell is almost never how it feels — it is what it asks you for.',
+    q: "You don't understand how payments work?",
+    a: 'A convincing message is designed to look convincing. The tell is almost never how it feels — it is which direction the money is actually moving.',
   },
   {
     q: "You don't understand inflation?",

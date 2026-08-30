@@ -13,7 +13,7 @@ insert into journeys (id, slug, title, short_title, order_index, color_token, es
   ('j08', 'investing-basics', 'Investing Basics', 'Investing', 8, 'n10', 4),
   ('j09', 'destinations', 'Where Can Your Money Actually Go?', 'Destinations', 9, 'n50', 4),
   ('j10', 'planning', 'Planning Your Money Life', 'Planning', 10, 'n100', 4),
-  ('j11', 'scams', 'Run a Financial Life', 'Final', 11, 'n200', 4)
+  ('j11', 'final-challenge', 'Run a Financial Life', 'Final', 11, 'n200', 4)
 on conflict (id) do update set
   slug=excluded.slug, title=excluded.title, short_title=excluded.short_title,
   order_index=excluded.order_index, color_token=excluded.color_token, est_minutes=excluded.est_minutes;

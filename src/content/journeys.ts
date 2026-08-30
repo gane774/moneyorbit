@@ -29,7 +29,7 @@ export const JOURNEYS: Journey[] = [
     title: 'Where Can Your Money Actually Go?', shortTitle: 'Destinations' },
   { id: 'j10', slug: 'planning',         orderIndex: 10, colorToken: 'n100',  estimatedMinutes: 4,
     title: 'Planning Your Money Life',       shortTitle: 'Planning' },
-  { id: 'j11', slug: 'scams',            orderIndex: 11, colorToken: 'n200',  estimatedMinutes: 4,
+  { id: 'j11', slug: 'final-challenge',  orderIndex: 11, colorToken: 'n200',  estimatedMinutes: 4,
     title: "Run a Financial Life",              shortTitle: 'Final' },
 ];
 

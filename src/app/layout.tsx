@@ -26,7 +26,7 @@ const mono = DM_Mono({
 export const metadata: Metadata = {
   title: 'MoneyOrbit',
   description:
-    'Learn how money actually works. Eleven short experiences on budgeting, borrowing, saving and scams — built for 12 to 18 year olds in India.',
+    'Learn how money actually works. Eleven short experiences on budgeting, borrowing, saving and investing, ending with a full financial life to run — built for 12 to 18 year olds in India.',
 };
 
 export const viewport: Viewport = {
