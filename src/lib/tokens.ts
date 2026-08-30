@@ -3,7 +3,6 @@ import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset'
 import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
 import type { CompoundCurveParams } from '@/content/experiences/j07-math';
 import type { AllocatePortfolioParams } from '@/content/experiences/j08-investing';
-import type { AllocateParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 
 /** Replaces {{token}} in content copy. Unknown tokens are left visible on
@@ -51,58 +50,6 @@ export function emiTokens(p: EmiParams): Record<string, string> {
  * If an author retunes the pool or the events, the Feedback screen follows
  * automatically instead of quietly stating a day that is no longer true.
  */
-/**
- * `actual` is the student's real allocation from the mechanic (category id
- * -> amount). Omit it to fall back to the params' suggested split — used
- * only by scripts/tools that check an experience's math before the mechanic
- * has run. In the app, LessonPlayer always passes the real allocation, so
- * Feedback reflects what the student actually did, not the reference split
- * shown as a hint on the Interact screen.
- */
-export function allocateTokens(
-  p: AllocateParams,
-  actual?: Record<string, number>,
-): Record<string, string> {
-  const amountFor = (categoryId: string, suggested: number) =>
-    actual ? (actual[categoryId] ?? 0) : suggested;
-
-  const eventsTotal = p.events.reduce((sum, e) => sum + e.amount, 0);
-  const setAside = p.categories
-    .filter((c) => c.id === 'aside')
-    .reduce((sum, c) => sum + amountFor(c.id, c.suggested), 0);
-  const essentials = p.categories
-    .filter((c) => c.essential)
-    .reduce((sum, c) => sum + amountFor(c.id, c.suggested), 0);
-
-  // The head-tracking path: only the "set aside" pot absorbs surprises.
-  // Walk events in date order and find where it runs dry.
-  let slack = setAside;
-  let dayRanOut = 0;
-  for (const e of [...p.events].sort((x, y) => x.day - y.day)) {
-    slack -= e.amount;
-    if (slack < 0 && dayRanOut === 0) dayRanOut = e.day;
-  }
-  const shortfall = Math.max(0, eventsTotal - setAside);
-
-  return {
-    pool: inr(p.pool),
-    buffer: inr(p.bufferTarget),
-    spendable: inr(p.pool - p.bufferTarget),
-    setAside: inr(setAside),
-    essentials: inr(essentials),
-    wants: inr(p.pool - essentials - setAside),
-    eventsTotal: inr(eventsTotal),
-    shortfall: inr(shortfall),
-    bufferGap: inr(Math.max(0, eventsTotal - p.bufferTarget)),
-    dayRanOut: String(dayRanOut || p.events[p.events.length - 1].day),
-    month: p.month,
-    // ev1, ev2, ... in the order authored in params (chronological in every
-    // experience so far). Lets Feedback copy narrate the specific shocks —
-    // "Day 6 — your water bottle cracks. {{ev1}}." — without the day and
-    // amount risking drift from what the mechanic actually generated.
-    ...Object.fromEntries(p.events.map((e, i) => [`ev${i + 1}`, inr(e.amount)])),
-  };
-}
 
 /** Derived figures for the choice-fastforward mechanic (J1). */
 export function choiceFastforwardTokens(p: ChoiceFastforwardParams): Record<string, string> {

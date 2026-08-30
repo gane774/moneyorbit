@@ -121,8 +121,8 @@ function build(s: Spec): Experience {
 const LOCKED_CTA: Record<MechanicType, string> = {
   'choice-fastforward': 'Pick one, then fast-forward',
   'compare-income':     'Compare both ways',
-  'allocate-events':    'Assign every rupee first',
-  'flow-trace':         'Follow the money',
+  'find-problem':       'Check your answers first',
+  'payment-decisions':  'Work through all five',
   'parallel-shock':     'Run the shock',
   'emi-slider':         'Try moving a slider',
   'compound-curve':     'Change something and watch',
@@ -151,7 +151,7 @@ const SPECS: Spec[] = [
   },
   {
     id: 'e03', journeyId: 'j03', slug: 'can-you-survive-the-month', title: 'Can You Survive the Month?',
-    mechanicType: 'allocate-events',
+    mechanicType: 'find-problem',
     concepts: ['budgeting', 'cash-flow', 'needs-vs-wants'],
     misconception: "I'll just track it in my head.",
     mechanicNote: 'Allocate a monthly amount, then random mid-month events hit.',
@@ -161,7 +161,7 @@ const SPECS: Spec[] = [
   },
   {
     id: 'e04', journeyId: 'j04', slug: 'follow-the-500', title: 'Follow the ₹500',
-    mechanicType: 'flow-trace',
+    mechanicType: 'payment-decisions',
     concepts: ['how-banks-work', 'upi-safety'],
     misconception: 'The bank just holds my money in a locker.',
     mechanicNote: 'Trace sender to UPI to bank to recipient, then meet a fake-OTP trap.',

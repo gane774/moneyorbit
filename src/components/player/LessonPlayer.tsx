@@ -9,19 +9,19 @@ import {
 import { JOURNEY_BY_ID, nextJourney } from '@/content/journeys';
 import { variantFor } from '@/content/experiences';
 import {
-  allocateTokens, allocatePortfolioTokens, choiceFastforwardTokens, compareIncomeTokens, compoundCurveTokens,
+  allocatePortfolioTokens, choiceFastforwardTokens, compareIncomeTokens, compoundCurveTokens,
   emiTokens,
 } from '@/lib/tokens';
 import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
 import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
-import type { FlowTraceParams } from '@/content/experiences/j04-banking';
+import type { PaymentDecisionParams } from '@/content/experiences/j04-banking';
 import type { ParallelShockParams } from '@/content/experiences/j05-saving';
 import type { AllocatePortfolioParams } from '@/content/experiences/j08-investing';
 import type { MatchGoalParams } from '@/content/experiences/j09-destinations';
 import type { GoalPlannerParams } from '@/content/experiences/j10-planning';
 import type { SpotScamParams } from '@/content/experiences/j11-scams';
 import type { CompoundCurveParams } from '@/content/experiences/j07-math';
-import type { AllocateParams } from '@/content/experiences/j03-budgeting';
+import type { FindProblemParams } from '@/content/experiences/j03-budgeting';
 import type { EmiParams } from '@/content/experiences/j06-credit';
 import * as P from '@/lib/progress';
 import { pushProgress } from '@/lib/sync';
@@ -31,10 +31,10 @@ import { TopBar } from './PlayerChrome';
 import {
   DecideScreen, ExplainScreen, FeedbackScreen, HookScreen, InteractScreen, PracticeScreen,
 } from './Screens';
-import AllocateEvents from './mechanics/AllocateEvents';
+import FindProblem from './mechanics/FindProblem';
 import ChoiceFastforward from './mechanics/ChoiceFastforward';
 import CompareIncome from './mechanics/CompareIncome';
-import FlowTrace from './mechanics/FlowTrace';
+import PaymentDecisions from './mechanics/PaymentDecisions';
 import AllocatePortfolio from './mechanics/AllocatePortfolio';
 import GoalPlanner from './mechanics/GoalPlanner';
 import SpotScam from './mechanics/SpotScam';
@@ -93,20 +93,6 @@ export default function LessonPlayer({
   const tokens = useMemo(() => {
     if (experience.mechanicType === 'emi-slider' && variant) {
       return emiTokens(variant.params as unknown as EmiParams);
-    }
-    if (experience.mechanicType === 'allocate-events' && variant) {
-      // Only a COMMITTING Decide screen (no options — the CTA press itself
-      // is the decision, e.g. J3's 12-14 and 17-18) evaluates the plan the
-      // student actually built in Interact. A BRANCHING Decide screen (has
-      // options, e.g. J3's 15-16 "next month, which strategy?") presents its
-      // own fixed hypothetical independent of the Interact warm-up — wiring
-      // the real allocation in there would leak practice-round numbers into
-      // a comparison that is supposed to hold both amounts fixed.
-      const committing = !variant.copy.decide.options?.length;
-      return allocateTokens(
-        variant.params as unknown as AllocateParams,
-        committing ? allocation : undefined,
-      );
     }
     if (experience.mechanicType === 'choice-fastforward' && variant) {
       return choiceFastforwardTokens(variant.params as unknown as ChoiceFastforwardParams);
@@ -203,12 +189,10 @@ export default function LessonPlayer({
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
-    ) : experience.mechanicType === 'allocate-events' ? (
-      <AllocateEvents
-        params={variant.params as unknown as AllocateParams}
+    ) : experience.mechanicType === 'find-problem' ? (
+      <FindProblem
+        params={variant.params as unknown as FindProblemParams}
         labels={copy.interact.labels}
-        allocation={allocation}
-        onAllocationChange={setAllocation}
         onExplored={onExplored}
       />
     ) : experience.mechanicType === 'choice-fastforward' ? (
@@ -223,9 +207,9 @@ export default function LessonPlayer({
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
-    ) : experience.mechanicType === 'flow-trace' ? (
-      <FlowTrace
-        params={variant.params as unknown as FlowTraceParams}
+    ) : experience.mechanicType === 'payment-decisions' ? (
+      <PaymentDecisions
+        params={variant.params as unknown as PaymentDecisionParams}
         labels={copy.interact.labels}
         onExplored={onExplored}
       />

@@ -61,7 +61,7 @@ insert into experiences (id, journey_id, slug, title, mechanic_type, is_core, ti
   ('e01', 'j01', 'buy-it-now-or-wait', 'Buy It Now, or Wait?', 'choice-fastforward', true, false),
   ('e02', 'j02', 'two-ways-to-get-paid', 'Two Ways to Get Paid', 'compare-income', true, false),
   ('e03', 'j03', 'can-you-survive-the-month', 'Can You Survive the Month?', 'allocate-events', true, false),
-  ('e04', 'j04', 'follow-the-500', 'Follow the ₹500', 'flow-trace', true, false),
+  ('e04', 'j04', 'follow-the-500', 'Would You Approve This?', 'payment-decisions', true, false),
   ('e05', 'j05', 'the-rainy-day-test', 'The Rainy Day Test', 'parallel-shock', true, false),
   ('e06', 'j06', 'what-does-this-loan-really-cost', 'What Does This Loan Really Cost?', 'emi-slider', true, false),
   ('e07', 'j07', 'watch-10000-grow', 'Watch ₹10,000 Grow', 'compound-curve', true, true),

@@ -2,450 +2,259 @@ import { COMMIT_OPTION_ID } from '../types';
 import type { Experience, ScreenCopy } from '../types';
 
 /**
- * REFERENCE IMPLEMENTATION #2 (Section 6).
+ * Budgeting & Cash-Flow.
  *
- * Written to sit alongside j06-credit as the second worked example, so the
- * remaining nine have two formats to copy rather than one.
+ * Rewritten from "allocate a pool and see what breaks". The old version asked
+ * a student to produce a good budget before anything had taught them what one
+ * looks like -- so a plan was judged against a standard they had no way to
+ * know. Diagnosing someone else's budget is the easier skill and the one that
+ * transfers: you can look at a set of numbers and say which line is the
+ * problem and why.
  *
- * The design problem here is different from J6. Credit had a single number
- * (total interest) that settles the argument. Budgeting does not — a month
- * can be "affordable" on paper and still fail. So the interaction has to
- * demonstrate TIMING, not just totals, and the events must be ones the
- * student could not have predicted. That is the whole point: the failure
- * being taught is not carelessness, it is the arrogance of thinking an
- * unplanned month can be planned in your head.
- *
- * Deliberate design choice (Section 23): the events are survivable. Total
- * shocks are Rs 1,300 against a Rs 800 buffer plus Rs 500 set aside, so a
- * student who kept a buffer finishes the month WITHOUT borrowing. A harder
- * month would teach helplessness instead of the lesson.
+ * No universal correct percentage is ever asserted. Each flaw is explained by
+ * what it COSTS this particular person, given what they have said they want.
  */
 
-export interface AllocateParams {
-  /** Monthly money in, per band (Section 6: pocket money -> salary). */
-  pool: number;
-  month: string;
-  categories: {
-    id: string;
-    label: string;
-    suggested: number;
-    /** Drives the needs-vs-wants concept without ever using those words. */
-    essential: boolean;
-  }[];
-  /** Unpredictable by design — the student cannot pre-empt these. */
-  events: { id: string; day: number; label: string; amount: number }[];
-  /** What the Decide screen's option B sets aside up front. */
-  bufferTarget: number;
+export interface BudgetFlaw {
+  id: string;
+  label: string;
+  /** True where the line is genuinely the problem in THIS budget. */
+  isProblem: boolean;
+  why: string;
 }
 
-const params1516: AllocateParams = {
-  pool: 5_000,
-  month: 'March',
-  categories: [
-    { id: 'phone',     label: 'Phone & data',       suggested: 300,   essential: true  },
-    { id: 'food',      label: 'Food & canteen',     suggested: 1_200, essential: true  },
-    { id: 'transport', label: 'Bus & auto',         suggested: 800,   essential: true  },
-    { id: 'going-out', label: 'Going out',          suggested: 900,   essential: false },
-    { id: 'shopping',  label: 'Clothes & shopping', suggested: 800,   essential: false },
-    { id: 'subs',      label: 'Subscriptions',      suggested: 500,   essential: false },
-    { id: 'aside',     label: 'Set aside',          suggested: 500,   essential: false },
+export interface FindProblemParams {
+  personName: string;
+  personContext: string;
+  income: number;
+  incomeLabel: string;
+  goal: string;
+  lines: { label: string; amount: number; note?: string }[];
+  leftover: number;
+  flaws: BudgetFlaw[];
+}
+
+const params1214: FindProblemParams = {
+  personName: 'Aarav',
+  personContext: 'Aarav is 13. He gets ₹1,000 a month and wants a ₹3,000 cricket bat by the end of the season — three months away.',
+  income: 1_000,
+  incomeLabel: 'Pocket money',
+  goal: 'A ₹3,000 cricket bat, three months away',
+  lines: [
+    { label: 'Canteen snacks', amount: 400 },
+    { label: 'Mobile game top-ups', amount: 250 },
+    { label: 'Bus fare', amount: 150, note: 'has to happen' },
+    { label: 'Saving for the bat', amount: 100 },
   ],
-  events: [
-    { id: 'ev1', day: 6,  label: 'School project materials', amount: 250 },
-    { id: 'ev2', day: 13, label: "Friend's birthday gift",   amount: 350 },
-    { id: 'ev3', day: 21, label: 'Cracked phone screen',     amount: 700 },
+  leftover: 100,
+  flaws: [
+    {
+      id: 'saving-too-low', label: 'Only ₹100 saved for the bat', isProblem: true,
+      why: 'At ₹100 a month the bat takes thirty months, not three. The goal he named is not reachable on this plan — nothing else in the budget matters as much as that gap.',
+    },
+    {
+      id: 'game-topups', label: '₹250 on game top-ups', isProblem: true,
+      why: 'This is two and a half times what he puts toward the thing he says he wants. Moving even half of it changes the bat from thirty months away to about ten.',
+    },
+    {
+      id: 'bus-fare', label: '₹150 on bus fare', isProblem: false,
+      why: 'This is how he gets to school. It is the one line here he cannot decide against, so it is not where the problem is.',
+    },
+    {
+      id: 'snacks', label: '₹400 on canteen snacks', isProblem: false,
+      why: 'It is the biggest line, which makes it look guilty — but he eats at school every day and this is not unreasonable for that. Big is not the same as wrong.',
+    },
   ],
-  bufferTarget: 1_000,
 };
 
-const copy1516: ScreenCopy = {
-  hook: {
-    kicker: 'Before we start',
-    headline: '₹5,000 for the month. You know roughly where it goes.',
-    lines: [
-      { text: "Phone, food, bus, going out. You've never written it down. You've never needed to." },
-      { text: 'Can you make it to the 30th?', accent: true },
-    ],
-    cta: 'Find out',
-  },
-
-  explain: {
-    kicker: 'How a month actually works',
-    headline: 'Money arrives once. It leaves thirty times.',
-    body: [
-      'It comes in one lump, then goes out in **dozens of small pieces** spread across the month.',
-      'Running out is rarely about the total. It is about **the month you get** not being the month you planned.',
-    ],
-    cta: 'Try it yourself',
-  },
-
-  interact: {
-    kicker: 'March · ₹5,000',
-    headline: 'Give every rupee a job.',
-    labels: {
-      pool: 'Money in',
-      allocated: 'Given a job',
-      remaining: 'Still unassigned',
-      balance: 'Left in hand',
-      day: 'Day',
-      events: 'What actually happened',
-      essential: 'Hard to skip',
-    },
-    cta: 'Run the month',
-    lockedCta: 'Assign every rupee first',
-  },
-
-  decide: {
-    kicker: 'Your call',
-    headline: 'Next month. Same ₹5,000. How do you run it?',
-    options: [
-      {
-        id: 'head',
-        title: 'Keep it in your head',
-        subtitle: 'You know your spending now — just be more careful',
-        figure: '{{pool}} to spend',
-      },
-      {
-        id: 'buffer',
-        title: 'Set aside {{buffer}} first',
-        subtitle: 'Untouchable. Budget whatever is left',
-        figure: '{{spendable}} to spend',
-      },
-    ],
-    cta: 'Lock it in',
-  },
-
-  feedback: {
-    kicker: "Here's what happened",
-    verdicts: {
-      head: {
-        tone: 'cost',
-        title: 'You ran out on day {{dayRanOut}}',
-        body:
-          'Being careful worked until the surprises arrived — a dentist visit, a farewell contribution, a charger that died. Different things, **{{eventsTotal}} again**. Your {{setAside}} ran out and you were **{{shortfall}} short**, so you had to ask someone to cover it.',
-      },
-      buffer: {
-        tone: 'good',
-        title: 'You made it to day 30',
-        body:
-          'A completely different set of surprises turned up, totalling **{{eventsTotal}}**. You did not predict a single one of them — you did not have to. Your **{{buffer}}** covered most of it and the last **{{bufferGap}}** cost you one night out. You finished **owing nobody**.',
-      },
-    },
-    myth: {
-      struck: "I'll just track it in my head.",
-      correction:
-        'Your head budgets for the month you are **expecting**. It never budgets for the month you **get**.',
-    },
-    vocab: {
-      term: 'Cash flow',
-      definition:
-        'Money in, money out, and — the part that catches people — when each one happens. You can have enough for the whole month and still be stuck on the 21st.',
-    },
-    cta: 'Got it',
-  },
-
-  practice: {
-    kicker: 'Quick check',
-    prompt:
-      "Your friend gets ₹2,000 a month. Phone, bus pass and lunch come to ₹1,700. They want a ₹200-a-month gaming subscription. 'I'll still have ₹100 left,' they say.",
-    options: [
-      {
-        id: 'fits',
-        title: 'It fits',
-        subtitle: '₹300 spare minus ₹200 leaves ₹100',
-        correct: false,
-        rationale:
-          'The arithmetic is right, which is exactly why this is tempting. But that ₹100 is now the entire budget for a cracked screen, a birthday and a school trip. One surprise and they are borrowing.',
-      },
-      {
-        id: 'not-safely',
-        title: 'Not safely',
-        subtitle: 'That leaves ₹100 for everything unplanned',
-        correct: true,
-        rationale:
-          'Same trap you just walked into. Their fixed costs are covered and the subscription fits on paper — but nothing is left for the month they actually get.',
-      },
-      {
-        id: 'swap',
-        title: 'Only if they drop something',
-        subtitle: 'Swap it for a cost they already have',
-        correct: false,
-        rationale:
-          'Better instinct than just adding it, and worth doing. But the real problem is not this one subscription — it is that ₹300 was never a buffer to begin with. Dropping something else and keeping zero spare leaves them just as exposed.',
-      },
-    ],
-    cta: 'Check answer',
-  },
-};
-
-/* ------------------------------------------------------------------
-   12-14 and 17-18: params are real so the mechanic and every derived
-   figure work today. Only the SCREEN COPY is outstanding, and it is
-   the standard placeholder so it cannot be mistaken for finished text
-   sitting next to the authored 15-16 script.
-   ------------------------------------------------------------------ */
-
-/**
- * Pocket money. Three categories, matching the reference path the author
- * gives the student on-screen (₹500 / ₹300 / ₹200). Two events, not three —
- * the 12-14 script is deliberately simpler than 15-16 and 17-18.
- */
-const params1214: AllocateParams = {
-  pool: 1_000,
-  month: 'March',
-  categories: [
-    { id: 'school',    label: 'School stuff & lunch',    suggested: 500, essential: true  },
-    { id: 'fun',       label: 'Snacks, games, outings',  suggested: 300, essential: false },
-    { id: 'aside',     label: 'Set aside for surprises', suggested: 200, essential: false },
+const params1516: FindProblemParams = {
+  personName: 'Meera',
+  personContext: 'Meera is 16. She earns ₹5,000 a month tutoring juniors. She wants to visit her cousin in Pune during the break — about ₹6,000 — and she has nothing saved.',
+  income: 5_000,
+  incomeLabel: 'Tutoring income',
+  goal: 'A ₹6,000 trip in four months, from ₹0 saved',
+  lines: [
+    { label: 'Phone and data', amount: 400, note: 'hard to skip' },
+    { label: 'Food and canteen', amount: 1_200, note: 'hard to skip' },
+    { label: 'Going out with friends', amount: 1_500 },
+    { label: 'Clothes and shopping', amount: 1_100 },
+    { label: 'Subscriptions', amount: 600 },
+    { label: 'Set aside for the trip', amount: 200 },
   ],
-  events: [
-    { id: 'ev1', day: 6,  label: 'Water bottle cracks',        amount: 80 },
-    { id: 'ev2', day: 13, label: "Friend's birthday, a gift",  amount: 180 },
+  leftover: 0,
+  flaws: [
+    {
+      id: 'trip-unreachable', label: '₹200 a month toward a ₹6,000 trip', isProblem: true,
+      why: 'Four months at ₹200 is ₹800. She will arrive at the break with an eighth of what the trip costs. The plan and the goal are not describing the same year.',
+    },
+    {
+      id: 'subs-stacked', label: '₹600 of subscriptions', isProblem: true,
+      why: 'Subscriptions are the easiest line to not notice, because nobody decides to pay them each month — they just continue. ₹600 is three times what she is putting toward the thing she actually wants.',
+    },
+    {
+      id: 'no-buffer', label: 'Nothing left unassigned', isProblem: true,
+      why: 'Every rupee has a job, which sounds disciplined, but it means any surprise has to come out of a category meant for something else. There is no slack at all in this month.',
+    },
+    {
+      id: 'food', label: '₹1,200 on food and canteen', isProblem: false,
+      why: 'She has to eat. This is a real cost of getting through the day, and cutting it is not where the ₹6,000 is going to come from.',
+    },
   ],
-  bufferTarget: 200,
 };
 
-/**
- * First salary. Six categories, matching the reference path the author
- * gives the student on-screen (₹12,000 / ₹6,000 / ₹3,000 / ₹1,500 /
- * ₹5,500 / ₹7,000).
- */
-const params1718: AllocateParams = {
-  pool: 35_000,
-  month: 'March',
-  categories: [
-    { id: 'rent',      label: 'Rent',               suggested: 12_000, essential: true  },
-    { id: 'food',      label: 'Groceries & food',   suggested: 6_000,  essential: true  },
-    { id: 'transport', label: 'Commute',            suggested: 3_000,  essential: true  },
-    { id: 'phone',     label: 'Phone & data',       suggested: 1_500,  essential: true  },
-    { id: 'wants',     label: 'Wants',              suggested: 5_500,  essential: false },
-    { id: 'aside',     label: 'Set aside for surprises', suggested: 7_000, essential: false },
+const params1718: FindProblemParams = {
+  personName: 'Rohan',
+  personContext: 'Rohan is 22 and just started working. He takes home ₹38,000 a month, has ₹0 saved, and is sending ₹5,000 home each month. He wants to move into his own place next year.',
+  income: 38_000,
+  incomeLabel: 'Take-home pay',
+  goal: 'A deposit for his own place, roughly ₹60,000, next year',
+  lines: [
+    { label: 'Rent (shared flat)', amount: 11_000, note: 'hard to skip' },
+    { label: 'Family contribution', amount: 5_000, note: 'committed' },
+    { label: 'Groceries and food', amount: 6_000, note: 'hard to skip' },
+    { label: 'Commute', amount: 2_500, note: 'hard to skip' },
+    { label: 'Eating out and going out', amount: 7_000 },
+    { label: 'Shopping', amount: 3_500 },
+    { label: 'Subscriptions', amount: 1_200 },
+    { label: 'Set aside', amount: 1_800 },
   ],
-  events: [
-    { id: 'ev1', day: 5,  label: 'Phone screen cracks',           amount: 2_200 },
-    { id: 'ev2', day: 14, label: "Cousin's wedding — gift + travel", amount: 4_400 },
-    { id: 'ev3', day: 21, label: 'Annual subscription renews',    amount: 2_500 },
+  leftover: 0,
+  flaws: [
+    {
+      id: 'no-emergency', label: '₹1,800 set aside, with ₹0 behind him', isProblem: true,
+      why: 'He has no emergency fund at all and this builds one at ₹1,800 a month. A single ₹20,000 surprise — a medical bill, a laptop, a trip home — puts him into debt, and it would take almost a year at this rate to be ready for one.',
+    },
+    {
+      id: 'lifestyle-heavy', label: '₹10,500 on eating out and shopping', isProblem: true,
+      why: 'That is more than a quarter of his take-home, and nearly six times what he saves. Nothing is wrong with either line on its own — the problem is the ratio against a deposit he says he wants next year.',
+    },
+    {
+      id: 'goal-unreachable', label: 'The ₹60,000 deposit', isProblem: true,
+      why: 'At ₹1,800 a month he reaches about ₹21,600 in a year. The deposit is not close, so either the timeline moves or the discretionary lines do.',
+    },
+    {
+      id: 'family', label: '₹5,000 sent home', isProblem: false,
+      why: 'This is a real obligation, not a lifestyle choice, and treating it as the flexible line would be the wrong lesson. Budgets have commitments that are not up for negotiation.',
+    },
+    {
+      id: 'rent', label: '₹11,000 rent in a shared flat', isProblem: false,
+      why: 'Under a third of take-home for housing, and already shared. This is one of the more sensible numbers in the budget.',
+    },
   ],
-  bufferTarget: 7_000,
 };
 
-
-/* ------------------------------------------------------------------
-   12-14 script. Same misconception, same six-screen shape as 15-16.
-   The Decide screen here COMMITS the allocation made in Interact rather
-   than branching -- the student's real choice already happened when they
-   split the pool, so Decide's job is to lock it in, not offer a second
-   choice that would contradict the first.
-   ------------------------------------------------------------------ */
-const copy1214: ScreenCopy = {
-  hook: {
-    kicker: 'Before we start',
-    headline: 'You get ₹1,000 for the month.',
-    lines: [
-      { text: 'You plan it out perfectly. Every rupee has a job.' },
-      { text: 'So will your plan actually survive the month?', accent: true },
-    ],
-    cta: "Let's find out",
-  },
-
-  explain: {
-    kicker: 'How a month actually works',
-    headline: 'A budget is a guess about the future.',
-    body: [
-      "You don't know exactly what's coming — a lost pencil case, a friend's birthday, a torn shoe.",
-      "The real test isn't the plan. It's **what happens when the month doesn't go the way you guessed**.",
-    ],
-    cta: 'Try it yourself',
-  },
-
-  interact: {
-    kicker: 'Your month · ₹1,000',
-    headline: 'Split it however you want.',
-    labels: {
-      pool: 'Money in',
-      allocated: 'Given a job',
-      remaining: 'Left to allocate',
-      balance: 'Left in hand',
-      day: 'Day',
-      events: 'What actually happened',
-      essential: 'Hard to skip',
+function makeCopy(p: FindProblemParams): ScreenCopy {
+  return {
+    hook: {
+      kicker: 'Before we start',
+      headline: `${p.personName} wrote out a budget. It adds up perfectly.`,
+      lines: [
+        { text: p.personContext },
+        { text: 'It still will not do what they want it to. Can you see why?', accent: true },
+      ],
+      cta: 'Show me the budget',
     },
-    cta: 'Lock in my budget',
-    lockedCta: 'Assign every rupee first',
-  },
-
-  decide: {
-    kicker: 'Lock it in',
-    headline: 'This is your plan for the month.',
-    body: ['No changes once it starts.'],
-    cta: 'Lock in my budget',
-  },
-
-  feedback: {
-    kicker: "Here's what happened",
-    verdicts: {
-      [COMMIT_OPTION_ID]: {
-        tone: 'cost',
-        title: 'You were {{shortfall}} short — on day {{dayRanOut}}',
-        lines: [
-          'Day 6 — your water bottle cracks. {{ev1}}.',
-          "Day 13 — your friend's birthday. A gift costs {{ev2}}.",
-        ],
-        body:
-          "Total surprises: **{{eventsTotal}}**. You'd set aside {{setAside}}. That was **{{shortfall}} short** — right on gift day.",
-      },
+    explain: {
+      kicker: 'What a budget can hide',
+      headline: 'Adding up is the easy part. Pointing in the right direction is not.',
+      body: [
+        'A budget can balance to the last rupee and still quietly make the thing you want **impossible**.',
+        'So the question is never "does it add up" — it is **what does this plan actually do** over the next few months.',
+      ],
+      cta: 'Find the problems',
     },
-    myth: {
-      struck: "I'll just track it in my head.",
-      correction:
-        "Your head budgets for the month you're **expecting**. It never budgets for the month you **get**.",
+    interact: {
+      kicker: `${p.personName}'s month`,
+      headline: 'Tap every line you think is a problem.',
+      labels: {
+        income: p.incomeLabel,
+        goal: 'What they want',
+        check: 'Check my answers',
+      },
+      cta: 'I see it',
+      lockedCta: 'Check your answers first',
     },
-    vocab: {
-      term: 'Cash flow',
-      definition:
-        'The money moving in and out of your pocket over time. A budget guesses at it. The real month decides it.',
+    decide: {
+      kicker: 'Your call',
+      headline: `If ${p.personName} could change one thing, what should it be?`,
+      body: ['There is more than one defensible answer. The reasoning is what matters.'],
+      options: [
+        { id: 'cut-wants', title: 'Move money from the discretionary lines', subtitle: 'Same income, different priorities' },
+        { id: 'extend', title: 'Keep the spending, move the deadline', subtitle: 'The goal takes longer, and that is allowed' },
+        { id: 'earn-more', title: 'Find more income', subtitle: 'Change the top line instead of the rest' },
+      ],
+      cta: 'Lock it in',
     },
-    cta: 'Got it',
-  },
-
-  practice: {
-    kicker: 'Quick check',
-    prompt:
-      'Your cousin plans ₹1,000 — ₹600 for wants, ₹400 for savings, ₹0 set aside for surprises. Halfway through, his cycle chain snaps. ₹150 to fix.',
-    options: [
-      {
-        id: 'fine', title: "He's fine, nothing changes", correct: false,
-        rationale:
-          'Nothing in his plan has a job called "surprises" — so ₹150 has to come from somewhere, and it changes something.',
+    feedback: {
+      kicker: 'All three of those work',
+      verdicts: {
+        'cut-wants': {
+          tone: 'good',
+          title: 'The fastest lever, and the one people avoid.',
+          body:
+            'Moving money out of the discretionary lines changes the outcome immediately, because those are the only lines that are genuinely optional. It costs something real, though — a budget with nothing enjoyable in it tends not to survive the month.',
+        },
+        extend: {
+          tone: 'good',
+          title: 'An honest answer, not a cop-out.',
+          body:
+            'Pushing the deadline is a legitimate decision as long as it is **decided** rather than discovered. What goes wrong is expecting the original date while funding a much longer one — the plan and the goal quietly disagreeing.',
+        },
+        'earn-more': {
+          tone: 'good',
+          title: 'True, and the slowest to arrange.',
+          body:
+            'More income solves it without giving anything up, which is why it is the most popular answer. It is also the one you control least and the one that takes longest to arrive — so it is rarely the only thing to do.',
+        },
       },
-      {
-        id: 'adjust', title: 'He has to take it from savings or skip something', correct: true,
-        rationale:
-          'Exactly. With nothing set aside, an unplanned cost always has to come out of a plan that was built for something else.',
+      myth: {
+        struck: 'A budget that adds up is a budget that works.',
+        correction:
+          'Adding up only proves you will not run out this month. Whether it gets you anywhere depends on **what the lines are pointed at**.',
       },
-      {
-        id: 'auto', title: 'His plan protects him automatically', correct: false,
-        rationale:
-          'A plan only protects you from what it was built to absorb. His had nothing set aside for surprises, so it absorbs nothing.',
+      vocab: {
+        term: 'Cash flow',
+        definition:
+          'Money in, money out, and when each happens. A budget describes the plan; cash flow is what actually occurs — including the surprise in week three that the plan never mentioned.',
       },
-    ],
-    cta: 'Check answer',
-  },
-};
-
-/* ------------------------------------------------------------------
-   17-18 script. Same shape, adult numbers and stakes.
-   ------------------------------------------------------------------ */
-const copy1718: ScreenCopy = {
-  hook: {
-    kicker: 'Before we start',
-    headline: 'Your first salary lands. ₹35,000.',
-    lines: [
-      { text: 'You plan every rupee before the month even starts.' },
-      { text: 'So will your plan actually survive the month?', accent: true },
-    ],
-    cta: "Let's find out",
-  },
-
-  explain: {
-    kicker: 'How a month actually works',
-    headline: 'A budget is a guess about the future.',
-    body: [
-      "Rent and groceries are predictable. Life isn't. A phone screen cracks, a friend's wedding needs a gift, a cousin asks to split a cab.",
-      "The plan isn't the test — **the month is**.",
-    ],
-    cta: 'Try it yourself',
-  },
-
-  interact: {
-    kicker: 'Your month · ₹35,000',
-    headline: 'Split it however you want.',
-    labels: {
-      pool: 'Money in',
-      allocated: 'Given a job',
-      remaining: 'Left to allocate',
-      balance: 'Left in hand',
-      day: 'Day',
-      events: 'What actually happened',
-      essential: 'Hard to skip',
+      cta: 'Got it',
     },
-    cta: 'Lock in my budget',
-    lockedCta: 'Assign every rupee first',
-  },
-
-  decide: {
-    kicker: 'Lock it in',
-    headline: 'This is your plan for the month.',
-    body: ['No changes once it starts.'],
-    cta: 'Lock in my budget',
-  },
-
-  feedback: {
-    kicker: "Here's what happened",
-    verdicts: {
-      [COMMIT_OPTION_ID]: {
-        tone: 'cost',
-        title: 'You were {{shortfall}} short — on day {{dayRanOut}}',
-        lines: [
-          'Day 5 — phone screen cracks. {{ev1}} to fix.',
-          "Day 14 — a cousin's wedding. Gift + travel: {{ev2}}.",
-          'Day 21 — an annual subscription renews without warning: {{ev3}}.',
-        ],
-        body:
-          "Total surprises: **{{eventsTotal}}**. You'd set aside {{setAside}}. That was **{{shortfall}} short** — the day the subscription hit.",
-      },
+    practice: {
+      kicker: 'Quick check',
+      prompt:
+        'Two people earn the same. One spends 55% on needs, 35% on wants, 10% saved. The other spends 70% on needs, 10% on wants, 20% saved. Which budget is better?',
+      options: [
+        {
+          id: 'first', title: 'The first — lower fixed costs mean more freedom', correct: false,
+          rationale: 'Lower fixed costs are genuinely useful, but 10% saved against 35% on wants may still miss what that person is aiming at. You cannot tell from the percentages alone.',
+        },
+        {
+          id: 'depends', title: 'You cannot tell without knowing what each is for', correct: true,
+          rationale: 'Right. Someone saving for a deposit next year and someone with no near-term goal need different plans. A percentage split is only good or bad relative to what it is meant to achieve.',
+        },
+        {
+          id: 'second', title: 'The second — saving 20% is always better', correct: false,
+          rationale: 'Saving more is usually good, and "always" is doing too much work. That person is spending 70% on needs, which may mean a housing cost worth fixing before congratulating the savings rate.',
+        },
+      ],
+      cta: 'Check answer',
     },
-    myth: {
-      struck: "I'll just track it in my head.",
-      correction:
-        "Your head budgets for the month you're **expecting**. It never budgets for the month you **get**.",
-    },
-    vocab: {
-      term: 'Cash flow',
-      definition:
-        'The money moving in and out of your account over time. A budget guesses at it. The real month decides it.',
-    },
-    cta: 'Got it',
-  },
-
-  practice: {
-    kicker: 'Quick check',
-    prompt:
-      'Your friend earns ₹30,000 and budgets rent, food and commute down to the rupee — ₹0 set aside for anything unplanned. Her laptop charger dies mid-month. ₹1,800 to replace.',
-    options: [
-      {
-        id: 'covered', title: 'Her budget already covers it', correct: false,
-        rationale:
-          "Budgeted down to the rupee means every rupee already has a job — none of them is 'unplanned charger'.",
-      },
-      {
-        id: 'cut', title: 'She has to cut something else or use a card', correct: true,
-        rationale:
-          'With zero set aside, ₹1,800 has to come from a category that was meant for something else, or from debt.',
-      },
-      {
-        id: 'wont-happen', title: "This won't actually happen to a careful planner", correct: false,
-        rationale:
-          'Careful planning controls the categories. It cannot control which day a charger decides to die.',
-      },
-    ],
-    cta: 'Check answer',
-  },
-};
+  };
+}
 
 export const J03_BUDGETING: Experience = {
   id: 'e03',
   journeyId: 'j03',
   slug: 'can-you-survive-the-month',
-  title: 'Can You Survive the Month?',
-  mechanicType: 'allocate-events',
+  title: "What's Wrong With This Budget?",
+  mechanicType: 'find-problem',
   isCore: true,
   timeSensitive: false,
   concepts: ['budgeting', 'cash-flow', 'needs-vs-wants'],
   availableTo: ['12-14', '15-16', '17-18'],
   ageVariants: {
-    '12-14': { params: params1214 as unknown as Record<string, unknown>, copy: copy1214 },
-    '15-16': { params: params1516 as unknown as Record<string, unknown>, copy: copy1516 },
-    '17-18': { params: params1718 as unknown as Record<string, unknown>, copy: copy1718 },
+    '12-14': { params: params1214 as unknown as Record<string, unknown>, copy: makeCopy(params1214) },
+    '15-16': { params: params1516 as unknown as Record<string, unknown>, copy: makeCopy(params1516) },
+    '17-18': { params: params1718 as unknown as Record<string, unknown>, copy: makeCopy(params1718) },
   },
 };

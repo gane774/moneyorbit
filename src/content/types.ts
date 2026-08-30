@@ -35,8 +35,8 @@ export const DARK_SCREENS: ScreenType[] = ['hook', 'feedback'];
 export type MechanicType =
   | 'choice-fastforward'   // J1  Buy It Now, or Wait?
   | 'compare-income'       // J2  Two Ways to Get Paid
-  | 'allocate-events'      // J3  Can You Survive the Month?
-  | 'flow-trace'           // J4  Follow the Rs 500
+  | 'find-problem'         // J3  What's Wrong With This Budget?
+  | 'payment-decisions'    // J4  Would You Approve This?
   | 'parallel-shock'       // J5  The Rainy Day Test
   | 'emi-slider'           // J6  What Does This Loan Really Cost?
   | 'compound-curve'       // J7  Watch Rs 10,000 Grow
@@ -59,8 +59,8 @@ export type MechanicType =
  *
  *   choice-fastforward  J1   the fast-forward has been run at least once
  *   compare-income      J2   both income paths have been viewed
- *   allocate-events     J3   the whole pool has been assigned (remaining = 0)
- *   flow-trace          J4   the trace has reached the final node
+ *   find-problem        J3   answers checked once
+ *   payment-decisions   J4   every situation has been decided
  *   parallel-shock      J5   the shock has been applied to both students
  *   emi-slider          J6   any slider has moved once
  *   compound-curve      J7   the rate or start-age has changed at least once
