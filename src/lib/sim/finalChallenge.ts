@@ -41,6 +41,21 @@ export const STEP = 10_000;
 export const FINE_STEP = 2_500;
 export const FINE_LINES = new Set(['subscriptions', 'phone']);
 
+/**
+ * Plain-language glosses for the youngest band (item 17). The scenario itself
+ * is identical at every age -- an adult life is the point -- but a 12-year-old
+ * meeting "TDS" or "provident fund" with no explanation learns nothing from
+ * them. Older bands see the ordinary terms without the scaffolding.
+ */
+export const SIMPLE_NOTES: Record<string, string> = {
+  'Income tax (TDS)': 'tax, taken out before you ever see it',
+  'Provident fund': 'saved for you automatically for much later — still yours',
+  'Professional tax & insurance': 'small fixed deductions',
+  'home-emi': 'the monthly payment on a house loan',
+  'utilities': 'electricity, water, internet',
+  'family': 'many adults support their parents — this is not optional',
+};
+
 export const LIFE: Life = {
   age: 27,
   city: 'Bengaluru',

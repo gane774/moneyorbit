@@ -241,7 +241,7 @@ export default function LessonPlayer({
         onExplored={onExplored}
       />
     ) : experience.mechanicType === 'final-challenge' ? (
-      <FinalChallenge onExplored={onExplored} />
+      <FinalChallenge onExplored={onExplored} band={band} />
     ) : (
       <PlaceholderMechanic
         mechanicType={experience.mechanicType}

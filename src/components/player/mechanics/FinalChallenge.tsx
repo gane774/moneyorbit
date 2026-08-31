@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { inr } from '@/lib/money';
-import type { MechanicProps } from '@/content/types';
+import type { AgeBand, MechanicProps } from '@/content/types';
 import {
-  LIFE, LINES, STEP, FINE_STEP, FINE_LINES, BONUS, BONUS_CHOICES,
+  LIFE, LINES, STEP, FINE_STEP, FINE_LINES, BONUS, BONUS_CHOICES, SIMPLE_NOTES,
   takeHome, totalDeductions, totalCommitments, allocatable,
   totalAllocated, sumGroup, carRepair, judgeBonus, rentRise, buildReport,
   type Alloc, type EventOutcome, type Report,
@@ -23,7 +23,13 @@ type Stage = 'payslip' | 'allocate' | 'repair' | 'bonus' | 'rent' | 'report';
  * taps to place everything, which is the point -- the brief explicitly rules
  * out making someone click two hundred times at a salary this size.
  */
-export default function FinalChallenge({ onExplored }: MechanicProps) {
+export default function FinalChallenge({ onExplored, band }: MechanicProps & { band: AgeBand }) {
+  /* Youngest band gets the jargon explained in place rather than a different
+     scenario -- running an adult life is the exercise at every age. */
+  const simple = band === '12-14';
+  const noteFor = (key: string, fallback?: string) =>
+    (simple ? SIMPLE_NOTES[key] : undefined) ?? fallback;
+
   const [stage, setStage] = useState<Stage>('payslip');
   const [alloc, setAlloc] = useState<Alloc>({});
   const [bonusChoice, setBonusChoice] = useState<string | null>(null);
@@ -103,7 +109,7 @@ export default function FinalChallenge({ onExplored }: MechanicProps) {
           <div className="readline"><span>Salary on paper</span><b>{inr(LIFE.grossMonthly)}</b></div>
           {LIFE.deductions.map((d) => (
             <div className="readline" key={d.label} style={{ color: 'var(--ink-60)' }}>
-              <span>− {d.label}{d.note && <span className="ae" style={{ marginLeft: 6 }}>{d.note}</span>}</span>
+              <span>− {d.label}{noteFor(d.label, d.note) && <span className="ae" style={{ marginLeft: 6 }}>{noteFor(d.label, d.note)}</span>}</span>
               <b>−{inr(d.amount)}</b>
             </div>
           ))}
@@ -118,7 +124,7 @@ export default function FinalChallenge({ onExplored }: MechanicProps) {
           </div>
           {LIFE.commitments.map((c) => (
             <div className="readline" key={c.id}>
-              <span>{c.label}{c.note && <span className="ae" style={{ marginLeft: 6 }}>{c.note}</span>}</span>
+              <span>{c.label}{noteFor(c.id, c.note) && <span className="ae" style={{ marginLeft: 6 }}>{noteFor(c.id, c.note)}</span>}</span>
               <b>−{inr(c.amount)}</b>
             </div>
           ))}
@@ -128,8 +134,12 @@ export default function FinalChallenge({ onExplored }: MechanicProps) {
         </div>
 
         <p className="body-s" style={{ marginTop: 14 }}>
-          {inr(LIFE.grossMonthly)} on paper became <b>{inr(pool)}</b> you actually
-          control. That gap is the first thing most people get wrong about a salary.
+          {simple
+            ? <>The job pays {inr(LIFE.grossMonthly)}, but only <b>{inr(pool)}</b> is
+              actually yours to decide about. Everything else was taken out or already
+              promised to something. Grown-up pay is almost never the number on the offer.</>
+            : <>{inr(LIFE.grossMonthly)} on paper became <b>{inr(pool)}</b> you actually
+              control. That gap is the first thing most people get wrong about a salary.</>}
         </p>
 
         <button className="btn" style={{ marginTop: 14 }} onClick={() => setStage('allocate')}>
