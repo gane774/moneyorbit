@@ -12,10 +12,11 @@ describe('CMS validation — the guard between an editor and a broken lesson', (
   it('rejects a Decide option with no matching verdict', () => {
     // The failure a student actually experiences: choose, then a blank screen.
     const c = good();
-    delete c.feedback.verdicts.wait;
+    const id = c.decide.options[0].id;          // derived, not hardcoded
+    delete c.feedback.verdicts[id];
     const r = validateScreenCopy(c);
     expect(r.ok).toBe(false);
-    expect(r.errors.join(' ')).toContain('missing a verdict for decide option "wait"');
+    expect(r.errors.join(' ')).toContain(`missing a verdict for decide option "${id}"`);
   });
 
   it('rejects a quiz with no correct answer, and one with several', () => {
@@ -42,7 +43,7 @@ describe('CMS validation — the guard between an editor and a broken lesson', (
 
   it('requires a valid verdict tone', () => {
     const c = good();
-    c.feedback.verdicts.wait.tone = 'neutral';
+    c.feedback.verdicts[c.decide.options[0].id].tone = 'neutral';
     expect(validateScreenCopy(c).errors.join(' ')).toContain('tone must be');
   });
 

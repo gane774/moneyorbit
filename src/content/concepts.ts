@@ -6,25 +6,35 @@ import type { Concept } from './types';
  * complete/incomplete. Diluting this list dilutes what "mastered" means.
  */
 export const CONCEPTS: Concept[] = [
-  // Mindset
-  { slug: 'opportunity-cost',    title: 'Opportunity cost',              isCoreConcept: true },
-  { slug: 'delayed-gratification', title: 'Delayed gratification',       isCoreConcept: true },
+  // Inflation (J1)
+  { slug: 'purchasing-power',    title: 'Purchasing power',              isCoreConcept: true },
+  { slug: 'inflation-rate',      title: 'Inflation rate',                isCoreConcept: true },
+  { slug: 'real-vs-nominal',     title: 'Real vs nominal return',        isCoreConcept: true },
+  // Credit score (J2)
+  { slug: 'credit-history',      title: 'Credit history',                isCoreConcept: true },
+  { slug: 'payment-history',     title: 'Payment history',               isCoreConcept: true },
+  { slug: 'credit-utilisation',  title: 'Credit utilisation',            isCoreConcept: true },
+  { slug: 'hard-inquiries',      title: 'Hard inquiries',                isCoreConcept: false },
+  // Shared
   { slug: 'needs-vs-wants',      title: 'Needs vs wants',                isCoreConcept: true },
-  // Earning
-  { slug: 'active-income',       title: 'Active income',                 isCoreConcept: true },
-  { slug: 'passive-income',      title: 'Passive income',                isCoreConcept: true },
   { slug: 'gross-vs-net',        title: 'Gross vs net pay',              isCoreConcept: false },
   // Budgeting
   { slug: 'budgeting',           title: 'Budgeting',                     isCoreConcept: true },
   { slug: 'cash-flow',           title: 'Cash flow',                     isCoreConcept: true },
   { slug: 'fixed-vs-variable',   title: 'Fixed vs variable costs',       isCoreConcept: false },
-  // Banking
+  // Investments (J4) — what the instrument IS. Risk/return lives in J8.
+  { slug: 'equity-ownership',    title: 'Owning equity',                 isCoreConcept: true },
+  { slug: 'mutual-funds',        title: 'Mutual funds',                  isCoreConcept: true },
+  { slug: 'instrument-types',    title: 'Types of investment',           isCoreConcept: true },
+  { slug: 'expense-ratio',       title: 'Expense ratio',                 isCoreConcept: false },
+  // Banking (J5)
   { slug: 'how-banks-work',      title: 'How banks actually work',       isCoreConcept: true },
-  { slug: 'upi-safety',          title: 'UPI and payment safety',        isCoreConcept: true },
-  { slug: 'account-types',       title: 'Account types',                 isCoreConcept: false },
-  // Saving
-  { slug: 'emergency-fund',      title: 'Emergency fund',                isCoreConcept: true },
+  { slug: 'account-types',       title: 'Savings vs current accounts',   isCoreConcept: true },
+  { slug: 'choosing-a-bank',     title: 'Choosing a bank',               isCoreConcept: true },
   { slug: 'saving-vs-investing', title: 'Saving vs investing',           isCoreConcept: true },
+  /* Still taught, despite the old Saving journey being replaced: the Final
+     Challenge's unexpected-repair event is entirely about having one. */
+  { slug: 'emergency-fund',      title: 'Emergency fund',                isCoreConcept: true },
   // Credit
   { slug: 'principal',           title: 'Principal',                     isCoreConcept: true },
   { slug: 'interest',            title: 'Interest',                      isCoreConcept: true },

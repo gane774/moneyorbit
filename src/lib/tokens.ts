@@ -1,6 +1,4 @@
 import { compound, computeLoan, futureValueMonthly, inr } from './money';
-import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
-import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
 import type { CompoundCurveParams } from '@/content/experiences/j07-math';
 import type { AllocatePortfolioParams } from '@/content/experiences/j08-investing';
 import type { EmiParams } from '@/content/experiences/j06-credit';
@@ -51,37 +49,7 @@ export function emiTokens(p: EmiParams): Record<string, string> {
  * automatically instead of quietly stating a day that is no longer true.
  */
 
-/** Derived figures for the choice-fastforward mechanic (J1). */
-export function choiceFastforwardTokens(p: ChoiceFastforwardParams): Record<string, string> {
-  const fv = compound(p.itemCost, p.rate, p.years);
-  return {
-    item: p.itemLabel,
-    cost: inr(p.itemCost),
-    years: String(p.years),
-    rate: `${p.rate}%`,
-    landingAge: String(p.landingAge),
-    fv: inr(fv),
-    growth: inr(fv - p.itemCost),
-  };
-}
 
-/** Derived figures for the compare-income mechanic (J2). */
-export function compareIncomeTokens(p: CompareIncomeParams): Record<string, string> {
-  const kabirMonthly = p.active.hourlyRate * p.active.hoursPerWeek * p.active.weeksPerMonth;
-  const zaraMonthly = (p.passive.principal * p.passive.ratePct) / 100 / 12;
-  return {
-    kabirName: p.active.name,
-    kabirTask: p.active.task,
-    kabirRate: inr(p.active.hourlyRate),
-    kabirHours: String(p.active.hoursPerWeek),
-    kabirWeeks: String(p.active.weeksPerMonth),
-    kabirMonthly: inr(kabirMonthly),
-    zaraName: p.passive.name,
-    zaraPrincipal: inr(p.passive.principal),
-    zaraRate: `${p.passive.ratePct}%`,
-    zaraMonthly: inr(zaraMonthly),
-  };
-}
 
 /** Derived figures for the compound-curve mechanic (J7). Decide compares
  *  "start 10 years earlier" against "find a 2-point-better rate," both

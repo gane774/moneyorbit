@@ -119,11 +119,11 @@ function build(s: Spec): Experience {
  * student should never be told to "move a slider" on a drag-and-drop screen.
  */
 const LOCKED_CTA: Record<MechanicType, string> = {
-  'choice-fastforward': 'Pick one, then fast-forward',
-  'compare-income':     'Compare both ways',
+  'inflation-basket':   'Move the slider first',
+  'credit-profiles':    'Make a prediction first',
   'find-problem':       'Check your answers first',
-  'payment-decisions':  'Work through all five',
-  'parallel-shock':     'Run the shock',
+  'match-instrument':   'Match every instrument first',
+  'bank-choice':        'Look at each bank first',
   'emi-slider':         'Try moving a slider',
   'compound-curve':     'Change something and watch',
   'allocate-portfolio': 'Fill all three, then run it twice',
@@ -135,7 +135,7 @@ const LOCKED_CTA: Record<MechanicType, string> = {
 const SPECS: Spec[] = [
   {
     id: 'e01', journeyId: 'j01', slug: 'buy-it-now-or-wait', title: 'Buy It Now, or Wait?',
-    mechanicType: 'choice-fastforward',
+    mechanicType: 'inflation-basket',
     concepts: ['opportunity-cost', 'delayed-gratification', 'needs-vs-wants'],
     misconception: 'Waiting means missing out.',
     mechanicNote: 'Choose spend-now or wait-and-grow, then fast-forward and see both.',
@@ -143,7 +143,7 @@ const SPECS: Spec[] = [
   },
   {
     id: 'e02', journeyId: 'j02', slug: 'two-ways-to-get-paid', title: 'Two Ways to Get Paid',
-    mechanicType: 'compare-income',
+    mechanicType: 'credit-profiles',
     concepts: ['active-income', 'passive-income'],
     misconception: 'Income is your job, full stop.',
     mechanicNote: 'Compare income that stops when you stop working against income that does not.',
@@ -161,7 +161,7 @@ const SPECS: Spec[] = [
   },
   {
     id: 'e04', journeyId: 'j04', slug: 'follow-the-500', title: 'Follow the ₹500',
-    mechanicType: 'payment-decisions',
+    mechanicType: 'match-instrument',
     concepts: ['how-banks-work', 'upi-safety'],
     misconception: 'The bank just holds my money in a locker.',
     mechanicNote: 'Trace sender to UPI to bank to recipient, then meet a fake-OTP trap.',
@@ -169,7 +169,7 @@ const SPECS: Spec[] = [
   },
   {
     id: 'e05', journeyId: 'j05', slug: 'the-rainy-day-test', title: 'The Rainy Day Test',
-    mechanicType: 'parallel-shock',
+    mechanicType: 'bank-choice',
     concepts: ['emergency-fund', 'saving-vs-investing'],
     misconception: "I'll deal with it when it happens.",
     mechanicNote: 'Two identical students, one has an emergency fund, the same shock hits both.',

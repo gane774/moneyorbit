@@ -1,8 +1,8 @@
 import type { AgeBand, Experience } from '../types';
-import { J01_MINDSET } from './j01-mindset';
-import { J02_EARNING } from './j02-earning';
-import { J04_BANKING } from './j04-banking';
-import { J05_SAVING } from './j05-saving';
+import { J01_INFLATION } from './j01-inflation';
+import { J02_CREDIT_SCORE } from './j02-credit-score';
+import { J04_INVESTMENTS } from './j04-investments';
+import { J05_BANKING } from './j05-banking';
 import { J07_MATH } from './j07-math';
 import { J08_INVESTING } from './j08-investing';
 import { J09_DESTINATIONS } from './j09-destinations';
@@ -17,7 +17,7 @@ import { PLACEHOLDER_EXPERIENCES } from './placeholders';
  * lesson can land one at a time without editing placeholders.ts.
  */
 const AUTHORED: Experience[] = [
-  J01_MINDSET, J02_EARNING, J03_BUDGETING, J04_BANKING, J05_SAVING, j06Credit, J07_MATH, J08_INVESTING,
+  J01_INFLATION, J02_CREDIT_SCORE, J03_BUDGETING, J04_INVESTMENTS, J05_BANKING, j06Credit, J07_MATH, J08_INVESTING,
   J09_DESTINATIONS, J10_PLANNING, J11_FINAL,
 ];
 const AUTHORED_IDS = new Set(AUTHORED.map((e) => e.id));
@@ -45,6 +45,6 @@ export function variantFor(exp: Experience, band: AgeBand) {
 }
 
 export {
-  j06Credit, J01_MINDSET, J02_EARNING, J03_BUDGETING, J04_BANKING, J05_SAVING, J07_MATH, J08_INVESTING,
+  j06Credit, J01_INFLATION, J02_CREDIT_SCORE, J03_BUDGETING, J04_INVESTMENTS, J05_BANKING, J07_MATH, J08_INVESTING,
   J09_DESTINATIONS, J10_PLANNING, J11_FINAL,
 };

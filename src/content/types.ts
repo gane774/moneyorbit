@@ -33,11 +33,11 @@ export const SCREEN_ORDER: ScreenType[] = [
 export const DARK_SCREENS: ScreenType[] = ['hook', 'feedback'];
 
 export type MechanicType =
-  | 'choice-fastforward'   // J1  Buy It Now, or Wait?
-  | 'compare-income'       // J2  Two Ways to Get Paid
+  | 'inflation-basket'     // J1  Why Does Money Lose Value?
+  | 'credit-profiles'      // J2  The Number Behind Your Credit
   | 'find-problem'         // J3  What's Wrong With This Budget?
-  | 'payment-decisions'    // J4  Would You Approve This?
-  | 'parallel-shock'       // J5  The Rainy Day Test
+  | 'match-instrument'     // J4  What Are You Actually Investing In?
+  | 'bank-choice'          // J5  How Does a Bank Actually Work?
   | 'emi-slider'           // J6  What Does This Loan Really Cost?
   | 'compound-curve'       // J7  Watch Rs 10,000 Grow
   | 'allocate-portfolio'   // J8  Pick Your Risk
@@ -57,11 +57,11 @@ export type MechanicType =
  *
  * Per-mechanic trigger, authoritative — implement to this when building each:
  *
- *   choice-fastforward  J1   the fast-forward has been run at least once
- *   compare-income      J2   both income paths have been viewed
+ *   inflation-basket    J1   the year or rate slider has moved once
+ *   credit-profiles     J2   a prediction has been made and revealed
  *   find-problem        J3   answers checked once
- *   payment-decisions   J4   every situation has been decided
- *   parallel-shock      J5   the shock has been applied to both students
+ *   match-instrument    J4   every item matched, or the comparison run
+ *   bank-choice         J5   the interaction for this band is complete
  *   emi-slider          J6   any slider has moved once
  *   compound-curve      J7   the rate or start-age has changed at least once
  *   allocate-portfolio  J8   all buckets allocated AND both runs played

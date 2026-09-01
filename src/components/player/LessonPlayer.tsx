@@ -9,13 +9,12 @@ import {
 import { JOURNEY_BY_ID, nextJourney } from '@/content/journeys';
 import { variantFor } from '@/content/experiences';
 import {
-  allocatePortfolioTokens, choiceFastforwardTokens, compareIncomeTokens, compoundCurveTokens,
-  emiTokens,
+  allocatePortfolioTokens, compoundCurveTokens, emiTokens,
 } from '@/lib/tokens';
-import type { ChoiceFastforwardParams } from '@/content/experiences/j01-mindset';
-import type { CompareIncomeParams } from '@/content/experiences/j02-earning';
-import type { PaymentDecisionParams } from '@/content/experiences/j04-banking';
-import type { ParallelShockParams } from '@/content/experiences/j05-saving';
+import type { InflationParams } from '@/content/experiences/j01-inflation';
+import type { CreditProfileParams } from '@/content/experiences/j02-credit-score';
+import type { InvestmentParams } from '@/content/experiences/j04-investments';
+import type { BankingParams } from '@/content/experiences/j05-banking';
 import type { AllocatePortfolioParams } from '@/content/experiences/j08-investing';
 import type { MatchGoalParams } from '@/content/experiences/j09-destinations';
 import type { GoalPlannerParams } from '@/content/experiences/j10-planning';
@@ -31,15 +30,15 @@ import {
   DecideScreen, ExplainScreen, FeedbackScreen, HookScreen, InteractScreen, PracticeScreen,
 } from './Screens';
 import FindProblem from './mechanics/FindProblem';
-import ChoiceFastforward from './mechanics/ChoiceFastforward';
-import CompareIncome from './mechanics/CompareIncome';
-import PaymentDecisions from './mechanics/PaymentDecisions';
+import InflationBasket from './mechanics/InflationBasket';
+import CreditProfiles from './mechanics/CreditProfiles';
+import MatchInstrument from './mechanics/MatchInstrument';
 import AllocatePortfolio from './mechanics/AllocatePortfolio';
 import GoalPlanner from './mechanics/GoalPlanner';
 import FinalChallenge from './mechanics/FinalChallenge';
 import MatchGoal from './mechanics/MatchGoal';
 import CompoundCurve from './mechanics/CompoundCurve';
-import ParallelShock from './mechanics/ParallelShock';
+import BankChoice from './mechanics/BankChoice';
 import EmiSlider from './mechanics/EmiSlider';
 import PlaceholderMechanic from './mechanics/PlaceholderMechanic';
 
@@ -92,12 +91,6 @@ export default function LessonPlayer({
   const tokens = useMemo(() => {
     if (experience.mechanicType === 'emi-slider' && variant) {
       return emiTokens(variant.params as unknown as EmiParams);
-    }
-    if (experience.mechanicType === 'choice-fastforward' && variant) {
-      return choiceFastforwardTokens(variant.params as unknown as ChoiceFastforwardParams);
-    }
-    if (experience.mechanicType === 'compare-income' && variant) {
-      return compareIncomeTokens(variant.params as unknown as CompareIncomeParams);
     }
     if (experience.mechanicType === 'compound-curve' && variant) {
       return compoundCurveTokens(variant.params as unknown as CompoundCurveParams);
@@ -194,27 +187,27 @@ export default function LessonPlayer({
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
-    ) : experience.mechanicType === 'choice-fastforward' ? (
-      <ChoiceFastforward
-        params={variant.params as unknown as ChoiceFastforwardParams}
+    ) : experience.mechanicType === 'inflation-basket' ? (
+      <InflationBasket
+        params={variant.params as unknown as InflationParams}
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
-    ) : experience.mechanicType === 'compare-income' ? (
-      <CompareIncome
-        params={variant.params as unknown as CompareIncomeParams}
+    ) : experience.mechanicType === 'credit-profiles' ? (
+      <CreditProfiles
+        params={variant.params as unknown as CreditProfileParams}
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
-    ) : experience.mechanicType === 'payment-decisions' ? (
-      <PaymentDecisions
-        params={variant.params as unknown as PaymentDecisionParams}
+    ) : experience.mechanicType === 'match-instrument' ? (
+      <MatchInstrument
+        params={variant.params as unknown as InvestmentParams}
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
-    ) : experience.mechanicType === 'parallel-shock' ? (
-      <ParallelShock
-        params={variant.params as unknown as ParallelShockParams}
+    ) : experience.mechanicType === 'bank-choice' ? (
+      <BankChoice
+        params={variant.params as unknown as BankingParams}
         labels={copy.interact.labels}
         onExplored={onExplored}
       />
