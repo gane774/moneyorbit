@@ -155,7 +155,7 @@ export function FeedbackScreen({
   const verdict = (decision && copy.verdicts[decision]) || Object.values(copy.verdicts)[0];
 
   return (
-    <div className="scr" style={{ overflowY: 'auto' }}>
+    <div className="scr">
       {placeholder && <PlaceholderBadge />}
       <Kicker>{T(copy.kicker, tokens)}</Kicker>
 
@@ -220,7 +220,7 @@ export function PracticeScreen({
   };
 
   return (
-    <div className="scr" style={{ overflowY: 'auto' }}>
+    <div className="scr">
       {placeholder && <PlaceholderBadge />}
       <Kicker>{T(copy.kicker, tokens)}</Kicker>
       <h2 className="h-mid" style={{ marginBottom: 16 }}>{rich(T(copy.prompt, tokens))}</h2>

@@ -168,8 +168,29 @@ a{color:inherit;text-decoration:none}
 
 .scr{
   flex:1;display:flex;flex-direction:column;
-  padding:20px 20px 18px;overflow:hidden;
+  padding:20px 20px 18px;
+
+  /* min-height:0 is load-bearing, not tidying. A flex child defaults to
+     min-height:auto, which refuses to shrink below its content -- so the
+     scroll container never becomes smaller than what it holds and overflow
+     never triggers. Without this line, overflow-y:auto silently does
+     nothing and tall screens simply clip.
+
+     This is what stopped students completing lessons on phones: .stage is
+     exactly 100dvh there, so any screen taller than the viewport (the
+     credit profiles once revealed, three expanded bank cards, the six
+     instruments plus four categories, the five-dimension final report) put
+     the Continue button below the fold with no way to reach it. */
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;   /* momentum scrolling on iOS */
+  overscroll-behavior:contain;        /* don't chain to the page behind */
 }
+
+/* The stage is the fixed-height frame the screen scrolls inside; it needs the
+   same treatment so its own flex child is allowed to shrink. */
+.stage{min-height:0}
 
 /* screen transition: 300-600ms, no cinematic delay */
 @keyframes screen-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
