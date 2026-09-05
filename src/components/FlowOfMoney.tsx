@@ -76,45 +76,49 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
   .to("#start-t2", { opacity: 0, duration: 1 }, 2)
   .to("#active-path", { strokeDashoffset: 5800, duration: 1 }, 1);
 
-  // 2. EARNING -> Move to (1420, 300)
-  tl.to(p, { x: 1420, y: 300, duration: 3, ease: "power1.inOut" }, "earn")
-  .to(c, { x: cx(1420), y: cy(300), duration: 3, ease: "power1.inOut" }, "earn")
-  .to("#scene-earn", { opacity: 1, duration: 1 }, "earn+=0.5")
-  .to("#active-path", { strokeDashoffset: 5340, duration: 3 }, "earn");
+  // 2. INFLATION -> Move to (1420, 300)
+  tl.to(p, { x: 1420, y: 300, duration: 3, ease: "power1.inOut" }, "inflation")
+  .to(c, { x: cx(1420), y: cy(300), duration: 3, ease: "power1.inOut" }, "inflation")
+  .to("#scene-inflation", { opacity: 1, duration: 1 }, "inflation+=0.5")
+  .to("#active-path", { strokeDashoffset: 5340, duration: 3 }, "inflation");
 
-  // Earning particles animation
-  tl.to("#earn-p1", { opacity: 1, duration: 0.2 }, "earn+=1.5")
-  .to("#earn-p1", { x: 170, y: 150, duration: 1, ease: "power1.in" }, "earn+=1.7")
-  .to("#earn-p1", { opacity: 0, duration: 0.1 }, "earn+=2.6");
-  tl.to("#earn-p2", { opacity: 1, duration: 0.2 }, "earn+=1.6")
-  .to("#earn-p2", { x: -170, y: 150, duration: 1, ease: "power1.in" }, "earn+=1.8")
-  .to("#earn-p2", { opacity: 0, duration: 0.1 }, "earn+=2.7");
-  tl.to("#earn-p3", { opacity: 1, duration: 0.2 }, "earn+=1.7")
-  .to("#earn-p3", { x: 170, y: -150, duration: 1, ease: "power1.in" }, "earn+=1.9")
-  .to("#earn-p3", { opacity: 0, duration: 0.1 }, "earn+=2.8");
-  tl.to("#earn-p4", { opacity: 1, duration: 0.2 }, "earn+=1.8")
-  .to("#earn-p4", { x: -170, y: -150, duration: 1, ease: "power1.in" }, "earn+=2.0")
-  .to("#earn-p4", { opacity: 0, duration: 0.1 }, "earn+=2.9");
+  /* Inflation action: four everyday prices close in on the same rupee. The
+     four particles travel INWARD, which is the point — nothing is leaving
+     the account, the note is simply being asked to cover more. */
+  tl.to("#infl-p1", { opacity: 1, duration: 0.2 }, "inflation+=1.5")
+  .to("#infl-p1", { x: 170, y: 150, duration: 1, ease: "power1.in" }, "inflation+=1.7")
+  .to("#infl-p1", { opacity: 0, duration: 0.1 }, "inflation+=2.6");
+  tl.to("#infl-p2", { opacity: 1, duration: 0.2 }, "inflation+=1.6")
+  .to("#infl-p2", { x: -170, y: 150, duration: 1, ease: "power1.in" }, "inflation+=1.8")
+  .to("#infl-p2", { opacity: 0, duration: 0.1 }, "inflation+=2.7");
+  tl.to("#infl-p3", { opacity: 1, duration: 0.2 }, "inflation+=1.7")
+  .to("#infl-p3", { x: 170, y: -150, duration: 1, ease: "power1.in" }, "inflation+=1.9")
+  .to("#infl-p3", { opacity: 0, duration: 0.1 }, "inflation+=2.8");
+  tl.to("#infl-p4", { opacity: 1, duration: 0.2 }, "inflation+=1.8")
+  .to("#infl-p4", { x: -170, y: -150, duration: 1, ease: "power1.in" }, "inflation+=2.0")
+  .to("#infl-p4", { opacity: 0, duration: 0.1 }, "inflation+=2.9");
 
-  tl.to(pCore, { scale: 1.2, duration: 0.3, yoyo: true, repeat: 1 }, "earn+=2.7");
+  // The note itself shrinks rather than pulsing bigger: same rupee, less reach.
+  tl.to(pCore, { scale: 0.78, duration: 0.5, ease: "power2.out" }, "inflation+=2.7");
 
-  // 3. MINDSET -> Move to (1520, 600)
-  tl.to(p, { x: 1520, y: 600, duration: 3, ease: "power1.inOut" }, "mindset")
-  .to(c, { x: cx(1520), y: cy(600), duration: 3, ease: "power1.inOut" }, "mindset")
-  .to("#scene-mindset", { opacity: 1, duration: 1 }, "mindset+=0.5")
-  .to("#scene-earn", { opacity: 0.3, duration: 1 }, "mindset")
-  .to("#active-path", { strokeDashoffset: 4940, duration: 3 }, "mindset");
+  // 3. CREDIT SCORE -> Move to (1520, 600)
+  tl.to(p, { x: 1520, y: 600, duration: 3, ease: "power1.inOut" }, "creditscore")
+  .to(c, { x: cx(1520), y: cy(600), duration: 3, ease: "power1.inOut" }, "creditscore")
+  .to("#scene-credit-score", { opacity: 1, duration: 1 }, "creditscore+=0.5")
+  .to("#scene-inflation", { opacity: 0.3, duration: 1 }, "creditscore")
+  .to(pCore, { scale: 1, duration: 1 }, "creditscore")
+  .to("#active-path", { strokeDashoffset: 4940, duration: 3 }, "creditscore");
 
-  // Mindset action: Ghost particle splits right
-  tl.to("#mindset-ghost", { opacity: 1, duration: 0.2 }, "mindset+=2.5")
-  .to("#mindset-ghost", { x: 230, duration: 1, ease: "power1.out" }, "mindset+=2.7")
-  .to("#mindset-ghost", { opacity: 0, duration: 0.5 }, "mindset+=3.5");
+  // Credit score action: a missed payment splits off down the red path
+  tl.to("#missed-ghost", { opacity: 1, duration: 0.2 }, "creditscore+=2.5")
+  .to("#missed-ghost", { x: 230, duration: 1, ease: "power1.out" }, "creditscore+=2.7")
+  .to("#missed-ghost", { opacity: 0, duration: 0.5 }, "creditscore+=3.5");
 
   // 4. BUDGETING -> Move to (1000, 800)
   tl.to(p, { x: 1000, y: 800, duration: 4, ease: "power1.inOut" }, "budget")
   .to(c, { x: cx(1000), y: cy(800), duration: 4, ease: "power1.inOut" }, "budget")
   .to("#scene-budget", { opacity: 1, duration: 1 }, "budget+=1")
-  .to("#scene-mindset", { opacity: 0.3, duration: 1 }, "budget")
+  .to("#scene-credit-score", { opacity: 0.3, duration: 1 }, "budget")
   .to("#active-path", { strokeDashoffset: 4340, duration: 4 }, "budget");
 
   // Budgeting action: Fill buckets
@@ -236,32 +240,30 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
   // Dest action: Orbit nodes
   tl.to("#dest-nodes", { rotation: 360, transformOrigin: "1000px 1800px", duration: 4, ease: "power1.inOut" }, "dest+=1");
 
-  // 11. SCAMS -> Move to (600, 1800)
-  tl.to(p, { x: 600, y: 1800, duration: 3, ease: "power1.inOut" }, "scam")
-  .to(c, { x: cx(600), y: cy(1800), duration: 3, ease: "power1.inOut" }, "scam")
-  .to("#scene-scam", { opacity: 1, duration: 1 }, "scam+=0.5")
-  .to("#scene-dest", { opacity: 0.3, duration: 1 }, "scam")
-  .to("#active-path", { strokeDashoffset: 880, duration: 3 }, "scam");
+  // 11. PLANNING -> Move to (600, 1800)
+  tl.to(p, { x: 600, y: 1800, duration: 3, ease: "power1.inOut" }, "plan")
+  .to(c, { x: cx(600), y: cy(1800), duration: 3, ease: "power1.inOut" }, "plan")
+  .to("#scene-planning", { opacity: 1, duration: 1 }, "plan+=0.5")
+  .to("#scene-dest", { opacity: 0.3, duration: 1 }, "plan")
+  .to("#active-path", { strokeDashoffset: 880, duration: 3 }, "plan");
 
-  // Scam action: Dip, warn, retreat
-  tl.to(p, { x: 580, y: 1850, duration: 0.5, ease: "power1.in" }, "scam+=2.5")
-  .to(c, { x: cx(580), y: cy(1850), duration: 0.5, ease: "power1.in" }, "scam+=2.5")
-  .to("#scam-warnings", { opacity: 1, duration: 0.2 }, "scam+=2.8")
-  .to("#scam-warnings", { opacity: 0, duration: 0.2 }, "scam+=3.2")
-  .to("#scam-warnings", { opacity: 1, duration: 0.2 }, "scam+=3.4")
-  .to(p, { x: 600, y: 1800, duration: 0.5, ease: "power2.out" }, "scam+=3.6")
-  .to(c, { x: cx(600), y: cy(1800), duration: 0.5, ease: "power2.out" }, "scam+=3.6")
-  .to("#scam-warnings", { opacity: 0, duration: 0.2 }, "scam+=3.8");
+  /* Planning action: three goals land in order, nearest first. The money does
+     not move here — this is the one stop that is about deciding where it is
+     going, so the protagonist holds still and the map fills in around it. */
+  tl.to("#goal-1", { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "plan+=2.4")
+  .to("#goal-2", { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "plan+=2.8")
+  .to("#goal-3", { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "plan+=3.2")
+  .to(pCore, { scale: 1.2, duration: 0.3, yoyo: true, repeat: 1 }, "plan+=3.6");
 
-  // Move past scam
-  tl.to(p, { x: 500, y: 1800, duration: 1, ease: "power1.inOut" }, "scam+=4.2")
-  .to(c, { x: cx(500), y: cy(1800), duration: 1, ease: "power1.inOut" }, "scam+=4.2")
-  .to("#active-path", { strokeDashoffset: 780, duration: 1 }, "scam+=4.2");
+  // Move on
+  tl.to(p, { x: 500, y: 1800, duration: 1, ease: "power1.inOut" }, "plan+=4.2")
+  .to(c, { x: cx(500), y: cy(1800), duration: 1, ease: "power1.inOut" }, "plan+=4.2")
+  .to("#active-path", { strokeDashoffset: 780, duration: 1 }, "plan+=4.2");
 
   // 12. FINAL -> Move to (400, 2100)
   tl.to(p, { x: 400, y: 2100, duration: 3, ease: "power1.inOut" }, "final")
   .to(c, { x: cx(400), y: cy(2100), duration: 3, ease: "power1.inOut" }, "final")
-  .to("#scene-scam", { opacity: 0.3, duration: 1 }, "final")
+  .to("#scene-planning", { opacity: 0.3, duration: 1 }, "final")
   .to("#active-path", { strokeDashoffset: 0, duration: 3 }, "final");
 
   // BIG ZOOM OUT
@@ -270,21 +272,24 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
   ;
 
   // Make all scenes fully visible again for the overview
-  tl.to(["#scene-earn", "#scene-mindset", "#scene-budget", "#scene-bank", "#scene-save", "#scene-credit", "#scene-math", "#scene-invest", "#scene-dest", "#scene-scam"], { opacity: 0.8, duration: 3 }, "zoom");
+  tl.to(["#scene-inflation", "#scene-credit-score", "#scene-budget", "#scene-bank", "#scene-save", "#scene-credit", "#scene-math", "#scene-invest", "#scene-dest", "#scene-planning"], { opacity: 0.8, duration: 3 }, "zoom");
 
       /* Section 6: sound at meaningful narrative milestones only, not every
          frame. The timeline already names every journey node as a GSAP
-         label ("earn", "mindset", ... "zoom") — reuse those exact times
+         label ("inflation", "creditscore", ... "zoom") — reuse those exact times
          rather than inventing separate percentage thresholds, so this list
          stays correct even if the choreography above is retimed later.
          `node_arrive` is reused for earn/budget/dest, same as the spec's
-         own example reuses one cue for several generic arrivals. */
+         own example reuses one cue for several generic arrivals.
+         `warning` moved from the retired scams stop to Inflation, which is
+         now the first thing the course teaches and the only stop where the
+         money is losing ground without anyone deciding anything. */
       const duration = tl.duration();
       const cueAt = (label: string) => (tl.labels[label] ?? 0) / duration;
       const cues: ScrollCue[] = [
         { progress: 0.001, event: 'flow_start' },
-        { progress: cueAt('earn'), event: 'node_arrive' },
-        { progress: cueAt('mindset'), event: 'branch' },
+        { progress: cueAt('inflation'), event: 'warning' },
+        { progress: cueAt('creditscore'), event: 'branch' },
         { progress: cueAt('budget'), event: 'node_arrive' },
         { progress: cueAt('bank'), event: 'payment' },
         { progress: cueAt('save'), event: 'saving' },
@@ -292,7 +297,7 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
         { progress: cueAt('math'), event: 'compounding' },
         { progress: cueAt('invest'), event: 'investing' },
         { progress: cueAt('dest'), event: 'node_arrive' },
-        { progress: cueAt('scam'), event: 'warning' },
+        { progress: cueAt('plan'), event: 'node_arrive' },
         { progress: cueAt('zoom'), event: 'finale' },
       ];
       cues.sort((a, b) => a.progress - b.progress);
@@ -442,43 +447,46 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
                     <text id="start-t2" x="960" y="220" textAnchor="middle" fill="var(--paper-60)" fontSize="52" opacity="0">But where does it actually go?</text>
                 </g>
 
-                {/* Scene 2: EARNING */}
-                <g id="scene-earn" opacity="0.3">
-                    <text x="1420" y="200" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">EARNING</text>
-                    <text x="1420" y="230" textAnchor="middle" fill="var(--paper-60)" fontSize="24">The sources of flow</text>
+                {/* Scene 2: INFLATION (Journey 1) */}
+                <g id="scene-inflation" opacity="0.3">
+                    <text x="1420" y="200" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">INFLATION</text>
+                    <text x="1420" y="230" textAnchor="middle" fill="var(--paper-60)" fontSize="24">The same ₹100, every year</text>
                     
-                    {/* Inflow branches */}
-                    <path d="M 1250 150 Q 1420 150, 1420 300" stroke="var(--good)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
-                    <path d="M 1590 150 Q 1420 150, 1420 300" stroke="var(--good)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
-                    <path d="M 1250 450 Q 1420 450, 1420 300" stroke="var(--good)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
-                    <path d="M 1590 450 Q 1420 450, 1420 300" stroke="var(--good)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
+                    {/* Four everyday prices, all pressing on one note. No figures
+                        here on purpose: the lesson itself carries the verified
+                        numbers, and a headline number on a landing page is the
+                        kind of thing that quietly goes stale. */}
+                    <path d="M 1250 150 Q 1420 150, 1420 300" stroke="var(--danger)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
+                    <path d="M 1590 150 Q 1420 150, 1420 300" stroke="var(--danger)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
+                    <path d="M 1250 450 Q 1420 450, 1420 300" stroke="var(--danger)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
+                    <path d="M 1590 450 Q 1420 450, 1420 300" stroke="var(--danger)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
                     
-                    <text x="1240" y="145" textAnchor="end" fill="var(--paper-60)" fontSize="22">Work</text>
-                    <text x="1600" y="145" textAnchor="start" fill="var(--paper-60)" fontSize="22">Skills</text>
-                    <text x="1240" y="460" textAnchor="end" fill="var(--paper-60)" fontSize="22">Business</text>
-                    <text x="1600" y="460" textAnchor="start" fill="var(--paper-60)" fontSize="22">Assets</text>
+                    <text x="1240" y="145" textAnchor="end" fill="var(--paper-60)" fontSize="22">Chips</text>
+                    <text x="1600" y="145" textAnchor="start" fill="var(--paper-60)" fontSize="22">Bus fare</text>
+                    <text x="1240" y="460" textAnchor="end" fill="var(--paper-60)" fontSize="22">Milk</text>
+                    <text x="1600" y="460" textAnchor="start" fill="var(--paper-60)" fontSize="22">Notebook</text>
 
-                    {/* Particles for inflow */}
-                    <circle id="earn-p1" cx="1250" cy="150" r="4" fill="var(--good)" opacity="0"/>
-                    <circle id="earn-p2" cx="1590" cy="150" r="4" fill="var(--good)" opacity="0"/>
-                    <circle id="earn-p3" cx="1250" cy="450" r="4" fill="var(--good)" opacity="0"/>
-                    <circle id="earn-p4" cx="1590" cy="450" r="4" fill="var(--good)" opacity="0"/>
+                    {/* Particles for rising prices */}
+                    <circle id="infl-p1" cx="1250" cy="150" r="4" fill="var(--danger)" opacity="0"/>
+                    <circle id="infl-p2" cx="1590" cy="150" r="4" fill="var(--danger)" opacity="0"/>
+                    <circle id="infl-p3" cx="1250" cy="450" r="4" fill="var(--danger)" opacity="0"/>
+                    <circle id="infl-p4" cx="1590" cy="450" r="4" fill="var(--danger)" opacity="0"/>
                 </g>
 
-                {/* Scene 3: MINDSET */}
-                <g id="scene-mindset" opacity="0.3">
-                    <text x="1520" y="520" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">THE FIRST CHOICE</text>
+                {/* Scene 3: CREDIT SCORE (Journey 2) */}
+                <g id="scene-credit-score" opacity="0.3">
+                    <text x="1520" y="520" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">YOUR CREDIT SCORE</text>
                     
-                    {/* Split paths */}
-                    <path id="path-now" d="M 1520 600 L 1750 600" stroke="var(--danger)" strokeWidth="4" fill="none" strokeDasharray="6,6"/>
+                    {/* The record splits: every repayment is one or the other */}
+                    <path id="path-missed" d="M 1520 600 L 1750 600" stroke="var(--danger)" strokeWidth="4" fill="none" strokeDasharray="6,6"/>
                     <circle cx="1750" cy="600" r="12" fill="var(--ink-surface)" stroke="var(--danger)" strokeWidth="3"/>
-                    <text x="1750" y="570" textAnchor="middle" fill="var(--danger)" fontSize="28" fontWeight="bold">NOW</text>
-                    <text x="1750" y="635" textAnchor="middle" fill="var(--paper-60)" fontSize="22">Immediate Spend</text>
+                    <text x="1750" y="570" textAnchor="middle" fill="var(--danger)" fontSize="28" fontWeight="bold">MISSED</text>
+                    <text x="1750" y="635" textAnchor="middle" fill="var(--paper-60)" fontSize="22">Stays on the record</text>
                     
-                    <text x="1450" y="680" textAnchor="end" fill="var(--good)" fontSize="28" fontWeight="bold">LATER</text>
-                    <text x="1450" y="705" textAnchor="end" fill="var(--paper-60)" fontSize="22">Accumulate</text>
+                    <text x="1450" y="680" textAnchor="end" fill="var(--good)" fontSize="28" fontWeight="bold">ON TIME</text>
+                    <text x="1450" y="705" textAnchor="end" fill="var(--paper-60)" fontSize="22">Builds the number</text>
 
-                    <circle id="mindset-ghost" cx="1520" cy="600" r="15" fill="var(--danger)" opacity="0" filter="url(#glow-red)"/>
+                    <circle id="missed-ghost" cx="1520" cy="600" r="15" fill="var(--danger)" opacity="0" filter="url(#glow-red)"/>
                 </g>
 
                 {/* Scene 4: BUDGETING */}
@@ -632,21 +640,28 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
                     </g>
                 </g>
 
-                {/* Scene 11: SCAMS */}
-                <g id="scene-scam" opacity="0.3">
-                    <text x="500" y="1700" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">PROTECT YOUR FLOW</text>
-                    
-                    {/* Scam Branch */}
-                    <path d="M 600 1800 L 580 1850 L 620 1890 L 570 1940 L 600 1980" stroke="var(--danger)" strokeWidth="6" fill="none" filter="url(#glow-red)"/>
-                    <text x="630" y="1850" fill="var(--danger)" fontSize="26" fontWeight="bold">"30% GUARANTEED"</text>
-                    
-                    {/* Warning Signs */}
-                    <g id="scam-warnings" opacity="0">
-                        <rect x="650" y="1880" width="120" height="30" rx="4" fill="var(--danger)"/>
-                        <text x="710" y="1900" textAnchor="middle" fill="var(--ink-surface)" fontSize="22" fontWeight="bold">URGENCY!</text>
-                        
-                        <rect x="620" y="1930" width="140" height="30" rx="4" fill="var(--danger)"/>
-                        <text x="690" y="1950" textAnchor="middle" fill="var(--ink-surface)" fontSize="22" fontWeight="bold">UNKNOWN SOURCE</text>
+                {/* Scene 11: PLANNING (Journey 10) */}
+                <g id="scene-planning" opacity="0.3">
+                    <text x="500" y="1700" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">YOUR MONEY MAP</text>
+                    <text x="500" y="1734" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Goals with dates on them</text>
+
+                    {/* The spine the goals hang off, nearest first */}
+                    <path d="M 600 1800 L 640 1855 L 640 1985" stroke="var(--n100)" strokeWidth="4" fill="none" strokeDasharray="8,8" opacity="0.7"/>
+
+                    <g id="goal-1" opacity="0" transform="translate(40, 0)">
+                        <circle cx="640" cy="1855" r="11" fill="var(--ink-surface)" stroke="var(--n100)" strokeWidth="3"/>
+                        <text x="672" y="1849" fill="var(--paper)" fontSize="24" fontWeight="bold">Phone</text>
+                        <text x="672" y="1876" fill="var(--paper-60)" fontSize="21">6 months</text>
+                    </g>
+                    <g id="goal-2" opacity="0" transform="translate(40, 0)">
+                        <circle cx="640" cy="1920" r="11" fill="var(--ink-surface)" stroke="var(--n100)" strokeWidth="3"/>
+                        <text x="672" y="1914" fill="var(--paper)" fontSize="24" fontWeight="bold">College</text>
+                        <text x="672" y="1941" fill="var(--paper-60)" fontSize="21">5 years</text>
+                    </g>
+                    <g id="goal-3" opacity="0" transform="translate(40, 0)">
+                        <circle cx="640" cy="1985" r="11" fill="var(--ink-surface)" stroke="var(--n100)" strokeWidth="3"/>
+                        <text x="672" y="1979" fill="var(--paper)" fontSize="24" fontWeight="bold">Retiring</text>
+                        <text x="672" y="2006" fill="var(--paper-60)" fontSize="21">40 years</text>
                     </g>
                 </g>
 

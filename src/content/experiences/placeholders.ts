@@ -8,11 +8,20 @@ import {
 } from '../types';
 
 /**
- * Section 6: the remaining ten experiences ship as structurally valid
- * placeholders — correct schema shape, correct screen count — so the
- * full 11-journey flow is testable end to end before real content lands.
- * Every copy string carries the [PLACEHOLDER] prefix so the CMS and the
- * player can both make it visually obvious that this is not final text.
+ * Section 6: an experience with no authored content yet ships as a
+ * structurally valid placeholder — correct schema shape, correct screen
+ * count — so the full 11-journey flow stays testable end to end. Every copy
+ * string carries the [PLACEHOLDER] prefix so the CMS and the player can both
+ * make it visually obvious that this is not final text.
+ *
+ * All eleven experiences are authored now, so every spec below is overridden
+ * in experiences/index.ts and none of them reach a student. They are kept as
+ * the scaffolding for a twelfth. The specs for the five lessons the
+ * curriculum revision retired (Buy It Now or Wait, Two Ways to Get Paid,
+ * Follow the ₹500, The Rainy Day Test, Spot the Scam) are gone: they
+ * described journeys that no longer exist and referenced concepts that no
+ * longer exist, which is exactly the stale content the reference-table seed
+ * is generated from.
  */
 
 export interface Spec {
@@ -134,22 +143,6 @@ const LOCKED_CTA: Record<MechanicType, string> = {
 
 const SPECS: Spec[] = [
   {
-    id: 'e01', journeyId: 'j01', slug: 'buy-it-now-or-wait', title: 'Buy It Now, or Wait?',
-    mechanicType: 'inflation-basket',
-    concepts: ['opportunity-cost', 'delayed-gratification', 'needs-vs-wants'],
-    misconception: 'Waiting means missing out.',
-    mechanicNote: 'Choose spend-now or wait-and-grow, then fast-forward and see both.',
-    vocabTerm: 'Opportunity cost',
-  },
-  {
-    id: 'e02', journeyId: 'j02', slug: 'two-ways-to-get-paid', title: 'Two Ways to Get Paid',
-    mechanicType: 'credit-profiles',
-    concepts: ['active-income', 'passive-income'],
-    misconception: 'Income is your job, full stop.',
-    mechanicNote: 'Compare income that stops when you stop working against income that does not.',
-    vocabTerm: 'Passive income',
-  },
-  {
     id: 'e03', journeyId: 'j03', slug: 'can-you-survive-the-month', title: 'Can You Survive the Month?',
     mechanicType: 'find-problem',
     concepts: ['budgeting', 'cash-flow', 'needs-vs-wants'],
@@ -158,22 +151,6 @@ const SPECS: Spec[] = [
     vocabTerm: 'Cash flow',
     // Section 6: 12-14 allocates pocket money; 17-18 allocates a salary.
     params: { pool: { '12-14': 1_000, '15-16': 5_000, '17-18': 35_000 } },
-  },
-  {
-    id: 'e04', journeyId: 'j04', slug: 'follow-the-500', title: 'Follow the ₹500',
-    mechanicType: 'match-instrument',
-    concepts: ['how-banks-work', 'upi-safety'],
-    misconception: 'The bank just holds my money in a locker.',
-    mechanicNote: 'Trace sender to UPI to bank to recipient, then meet a fake-OTP trap.',
-    vocabTerm: 'UPI',
-  },
-  {
-    id: 'e05', journeyId: 'j05', slug: 'the-rainy-day-test', title: 'The Rainy Day Test',
-    mechanicType: 'bank-choice',
-    concepts: ['emergency-fund', 'saving-vs-investing'],
-    misconception: "I'll deal with it when it happens.",
-    mechanicNote: 'Two identical students, one has an emergency fund, the same shock hits both.',
-    vocabTerm: 'Emergency fund',
   },
   {
     id: 'e07', journeyId: 'j07', slug: 'watch-10000-grow', title: 'Watch ₹10,000 Grow',
@@ -217,15 +194,6 @@ const SPECS: Spec[] = [
     misconception: 'Goals are vague wishes.',
     mechanicNote: 'Enter three real goals and get the monthly saving each one needs.',
     vocabTerm: 'Net worth',
-  },
-  {
-    id: 'e11', journeyId: 'j11', slug: 'spot-the-scam', title: 'Spot the Scam',
-    mechanicType: 'final-challenge',
-    concepts: ['scam-red-flags', 'guaranteed-returns', 'phishing-otp'],
-    misconception: "Scams are obvious. That won't be me.",
-    mechanicNote: 'Four fictional offers. Flag the red flags before the clock runs out.',
-    vocabTerm: 'Red flag',
-    params: { offers: 4, seconds: 45 },
   },
 ];
 

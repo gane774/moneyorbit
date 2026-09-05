@@ -23,6 +23,11 @@ import styles from './HomeSections.module.css';
  * Section 15 - what happens if you don't know
  * Cause -> effect. Consequences are concrete and non-dramatic: the tone
  * is "worth knowing before you need it", never a scare tactic.
+ *
+ * Every gap named here has to be one the course actually closes. The
+ * fake-payment-message entry was dropped when the scams journey was
+ * retired: promising to teach something no lesson covers is the one
+ * failure mode this page cannot have.
  * ------------------------------------------------------------------ */
 const CONSEQUENCES = [
   {
@@ -30,12 +35,12 @@ const CONSEQUENCES = [
     a: 'You compare the monthly payment and miss the total. The cheaper-looking loan is often the one that costs more by the end.',
   },
   {
-    q: "You don't understand credit cards?",
-    a: 'Paying the "minimum due" clears the warning, not the balance. What is left keeps growing while it waits.',
+    q: "You don't understand what you are actually buying?",
+    a: 'Shares, funds, deposits and gold are four different things doing four different jobs. Bought without knowing which is which, the mix ends up an accident rather than a decision.',
   },
   {
-    q: "You don't understand how payments work?",
-    a: 'A convincing message is designed to look convincing. The tell is almost never how it feels — it is which direction the money is actually moving.',
+    q: "You don't understand your credit score?",
+    a: 'It is being written years before you need it. By the time a loan, a card or a rented flat depends on the number, the record it is built from is already there.',
   },
   {
     q: "You don't understand inflation?",
@@ -47,6 +52,13 @@ const CONSEQUENCES = [
  * Section 17 - things nobody teaches you
  * Each line is a true, checkable claim -- nothing sensational, because
  * an overstated hook undermines the lesson it is selling.
+ *
+ * And each one has to be a claim a lesson actually pays off. Two entries
+ * here and in Section 15 promised credit-card material -- the minimum
+ * payment trap -- that no journey teaches: Credit is EMIs and loan tenure
+ * from end to end. They were replaced rather than left standing, because a
+ * homepage that sells material the course does not contain is the same
+ * failure as a dashboard naming journeys that no longer exist.
  * ------------------------------------------------------------------ */
 const UNTAUGHT = [
   {
@@ -58,12 +70,12 @@ const UNTAUGHT = [
     a: 'At around 6% inflation, today\'s ₹100 buys roughly what ₹56 buys in ten years. The note is unchanged; its power is not.',
   },
   {
-    q: "A minimum payment isn't paying the bill.",
-    a: 'It keeps the account in good standing. The rest of the balance stays, and interest keeps accruing on it.',
+    q: 'There is no single best place to put money.',
+    a: 'Money you need in six months and money you need in twenty years belong in different places. The right answer depends on the date, not on the rate.',
   },
   {
-    q: '"Guaranteed return" is a warning sign.',
-    a: 'Genuine returns vary. A promised, fixed, unusually high number is describing something that does not exist.',
+    q: 'Checking your own credit score does not damage it.',
+    a: 'Looking at your own record is a soft check and counts for nothing. It is the applications you make that get recorded against you.',
   },
   {
     q: 'Starting earlier can beat starting bigger.',

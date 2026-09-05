@@ -58,10 +58,11 @@ export const CONCEPTS: Concept[] = [
   // Planning
   { slug: 'goal-setting',        title: 'Financial goal setting',        isCoreConcept: true },
   { slug: 'net-worth',           title: 'Net worth',                     isCoreConcept: true },
-  // Scams
-  { slug: 'scam-red-flags',      title: 'Scam red flags',                isCoreConcept: true },
-  { slug: 'guaranteed-returns',  title: 'The "guaranteed returns" lie',  isCoreConcept: true },
-  { slug: 'phishing-otp',        title: 'OTP and phishing fraud',        isCoreConcept: true },
+  /* The three scam concepts (red flags, "guaranteed returns", OTP phishing)
+     retired with the scams journey. Nothing teaches them any more, so they
+     must not sit in this list: it is the source of the reference tables the
+     admin dashboard reads, and a concept nobody can reach would show there
+     for ever. */
 ];
 
 export const CONCEPT_BY_SLUG = new Map(CONCEPTS.map((c) => [c.slug, c]));
