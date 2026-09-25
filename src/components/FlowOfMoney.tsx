@@ -314,7 +314,26 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
         if (scrollable <= 0) return;
         const scrolled = -rect.top;
         target = Math.max(0, Math.min(1, scrolled / scrollable));
+        kick();
       };
+
+      /* The loop only runs while `current` is still easing toward `target`.
+         It used to reschedule itself every frame forever, so an idle homepage
+         kept the CPU awake at 60fps — enough to warm a phone left on it. Now
+         it snaps the last sliver, stops, and the next scroll restarts it. */
+      const render = () => {
+        raf = 0;
+        const diff = target - current;
+        current = Math.abs(diff) > 0.0001 ? current + diff * 0.08 : target;
+        tl.progress(current);
+        fireCrossedCues(prevProgress, current, cues);
+        prevProgress = current;
+        if (current !== target) raf = requestAnimationFrame(render);
+      };
+
+      function kick() {
+        if (!raf) raf = requestAnimationFrame(render);
+      }
 
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', onScroll);
@@ -325,18 +344,6 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
       if (sectionRef.current) ro.observe(sectionRef.current);
 
       onScroll();
-
-      const render = () => {
-        const diff = target - current;
-        if (Math.abs(diff) > 0.0001) {
-          current += diff * 0.08;
-          tl.progress(current);
-        }
-        fireCrossedCues(prevProgress, current, cues);
-        prevProgress = current;
-        raf = requestAnimationFrame(render);
-      };
-      render();
 
       cleanup = () => {
         window.removeEventListener('scroll', onScroll);
