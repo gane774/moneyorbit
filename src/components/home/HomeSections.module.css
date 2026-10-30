@@ -268,6 +268,27 @@
   color:var(--paper-45);
 }
 
+/* ---------- polish: hover depth + press feedback ---------- */
+
+.stop{transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s,border-color .2s}
+.stop:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:transparent}
+.opt,.myth{transition:border-color .18s,box-shadow .25s,transform .25s cubic-bezier(.22,1,.36,1),background .2s}
+.opt:hover,.myth:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.opt:active,.myth:active{transform:scale(.985);box-shadow:none}
+.row:hover .rowQ{color:var(--indigo)}
+.rowQ{transition:color .2s}
+
+.close{position:relative;overflow:hidden;isolation:isolate}
+.close::before{
+  content:"";position:absolute;z-index:-1;left:50%;top:0;width:900px;height:520px;
+  transform:translate(-50%,-45%);
+  background:radial-gradient(closest-side,rgba(229,163,43,.16),rgba(190,64,121,.08) 55%,transparent);
+  pointer-events:none;
+}
+.closeBtn{transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s}
+.closeBtn:hover{transform:translateY(-2px);box-shadow:0 14px 34px -12px rgba(229,163,43,.45)}
+.closeBtn:active{transform:scale(.98)}
+
 @media(prefers-reduced-motion:reduce){
-  .rowBody,.rowMark,.opt,.myth{transition:none}
+  .rowBody,.rowMark,.opt,.myth,.stop,.closeBtn{transition:none}
 }

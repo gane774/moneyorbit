@@ -490,3 +490,78 @@ input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--indigo
   font-size:14.5px;line-height:1.45;color:var(--ink);
   border-top:1px solid var(--ink-12);padding-top:11px;
 }
+
+/* ============================================================
+   Polish layer (Oct 2026 aesthetic pass).
+   Adds texture, motion and press feedback on top of the tokens
+   above. No new hues: shadows are tinted with --ink, the hero
+   accent reuses the denomination palette.
+   ============================================================ */
+
+:root{
+  --shadow-sm:0 1px 2px rgba(21,24,15,.05),0 2px 6px -2px rgba(21,24,15,.06);
+  --shadow-md:0 2px 4px rgba(21,24,15,.04),0 12px 28px -12px rgba(39,43,99,.22);
+  --ease-out:cubic-bezier(.22,1,.36,1);
+}
+
+html{scroll-behavior:smooth}
+
+/* Film grain over everything: breaks the flat-vector feel of the canvas.
+   Fixed + pointer-events:none so it never affects layout or clicks. */
+body::after{
+  content:"";position:fixed;inset:0;z-index:50;pointer-events:none;
+  opacity:.05;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+h1,h2,h3,.h-big,.h-mid{text-wrap:balance}
+p{text-wrap:pretty}
+
+/* Buttons: lift on hover, physical press on click. */
+.btn{transition:opacity .18s ease,transform .25s var(--ease-out),box-shadow .25s var(--ease-out)}
+.btn:not(:disabled):hover{opacity:1;transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.btn:not(:disabled):active{transform:translateY(0) scale(.985);box-shadow:none}
+
+/* Staggered entry. Elements with .rise fade up; --d sets the delay. */
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.rise{animation:rise .8s var(--ease-out) both;animation-delay:var(--d,0ms)}
+
+/* ---------- landing hero ---------- */
+
+.hero{
+  position:relative;isolation:isolate;
+  min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  max-width:760px;margin:0 auto;padding:48px 24px 64px;
+}
+/* Soft ambient light behind the headline, in brand hues at very low alpha. */
+.hero::before{
+  content:"";position:absolute;z-index:-1;inset:10% -20% 20% -10%;
+  background:
+    radial-gradient(40% 50% at 20% 40%,rgba(39,43,99,.10),transparent 70%),
+    radial-gradient(35% 45% at 75% 60%,rgba(229,163,43,.10),transparent 70%);
+  filter:blur(20px);pointer-events:none;
+}
+.hero-mark{
+  display:flex;align-items:center;gap:10px;margin-bottom:44px;
+  font-family:var(--font-display);font-weight:800;font-size:22px;letter-spacing:-.02em;
+}
+.hero-mark i{
+  display:block;width:44px;height:6px;border-radius:99px;
+  background:linear-gradient(90deg,var(--n10),var(--n20),var(--n50),var(--n100),var(--n200),var(--n2000));
+}
+.hero-h{
+  font-family:var(--font-display);font-weight:800;
+  font-size:clamp(40px,8.4vw,76px);line-height:.98;letter-spacing:-.035em;max-width:14ch;
+}
+.hero-h em{font-style:normal;color:var(--indigo)}
+.hero-p{margin-top:22px;max-width:46ch;font-size:17.5px;color:var(--ink-60);line-height:1.55}
+.hero-cta{margin-top:34px;max-width:300px}
+.hero-hint{
+  margin-top:52px;display:flex;align-items:center;gap:10px;
+  font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-35);
+}
+.hero-hint::before{
+  content:"";width:1px;height:28px;background:linear-gradient(var(--ink-35),transparent);
+  animation:hint 2.2s var(--ease-out) infinite;transform-origin:top;
+}
+@keyframes hint{0%{transform:scaleY(0)}50%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
