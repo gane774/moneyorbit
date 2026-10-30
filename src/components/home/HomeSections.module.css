@@ -268,6 +268,10 @@
   color:var(--paper-45);
 }
 
+.legal{margin-top:48px;display:flex;justify-content:center;gap:22px;font-size:13px}
+.legal a{color:var(--paper-60);text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--paper-18)}
+@media(hover:hover) and (pointer:fine){.legal a:hover{color:var(--paper)}}
+
 /* ---------- polish: press feedback, pointer-only hover ---------- */
 
 .opt,.myth{transition:border-color .18s,transform .16s cubic-bezier(.22,1,.36,1),background .2s}

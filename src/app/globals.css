@@ -543,3 +543,13 @@ p{text-wrap:pretty}
   margin-top:52px;
   font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-35);
 }
+
+/* ---------- /privacy and /terms ---------- */
+.legal{max-width:640px;padding-bottom:72px}
+.legal p,.legal li{font-size:15.5px;line-height:1.6;color:var(--ink-60);max-width:62ch}
+.legal p{margin-top:12px}
+.legal b{color:var(--ink);font-weight:600}
+.legal h2{font-family:var(--font-display);font-weight:600;font-size:19px;letter-spacing:-.01em;margin:34px 0 4px}
+.legal ul{margin:12px 0 0 18px;display:grid;gap:8px}
+.legal a{text-decoration:underline;text-underline-offset:3px}
+.hint a{text-decoration:underline;text-underline-offset:2px}

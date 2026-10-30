@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { JOURNEYS, TOTAL_JOURNEYS, TOTAL_MINUTES, journeyColorVar } from '@/content/journeys';
 import { computeLoan, inr } from '@/lib/money';
 import { resolveStartDestination } from '@/lib/startDestination';
@@ -295,10 +296,14 @@ export default function HomeSections() {
           <h2 className={styles.closeH}>You will not be an expert. You will not be guessing either.</h2>
           <p className={styles.closeP}>
             {TOTAL_JOURNEYS} experiences. About {TOTAL_MINUTES} minutes. You make the decisions
-            and watch what they cost — before it is your actual money.
+            and watch what they cost, before it is your actual money.
           </p>
           <button className={styles.closeBtn} onClick={go}>Start your first lesson</button>
           <div className={styles.closeSub}>No payment. Nothing to install.</div>
+          <nav className={styles.legal} aria-label="Legal">
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
+          </nav>
         </div>
       </section>
     </div>

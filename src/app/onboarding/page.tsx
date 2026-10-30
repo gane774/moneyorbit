@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { bandForAge } from '@/content/types';
 import * as P from '@/lib/progress';
 import { signUp, USERNAME_RE } from '@/lib/auth';
@@ -145,8 +146,8 @@ export default function Onboarding() {
               <div className="kicker">Last one</div>
               <h1 className="h-big">Where can we reach you?</h1>
               <p className="body-s">
-                Email or phone, whichever you actually use. We use it to save your
-                progress. Nothing else.
+                Email or phone, whichever you actually use. It is only for getting
+                back into your account if you forget your password.
               </p>
 
               <div className="field" style={{ marginTop: 22 }}>
@@ -170,6 +171,11 @@ export default function Onboarding() {
                 </div>
                 {err && <div className="err">{err}</div>}
               </div>
+
+              <p className="hint" style={{ marginTop: 18 }}>
+                By creating an account you agree to the <Link href="/terms" target="_blank">Terms</Link> and
+                {' '}<Link href="/privacy" target="_blank">Privacy Policy</Link>.
+              </p>
 
               <div className="spacer" />
               <button
