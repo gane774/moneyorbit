@@ -31,6 +31,8 @@ export default function LandingMotion() {
 
       const lenis = new Lenis({ lerp: 0.11, wheelMultiplier: 0.9 });
       lenis.on('scroll', ScrollTrigger.update);
+      // Dev-only handle so scripted checks can jump without Lenis easing back.
+      if (process.env.NODE_ENV !== 'production') (window as unknown as { __lenis?: unknown }).__lenis = lenis;
       const tick = (t: number) => lenis.raf(t * 1000);
       gsap.ticker.add(tick);
       gsap.ticker.lagSmoothing(0);

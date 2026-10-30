@@ -4,31 +4,103 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { resolveStartDestination } from '@/lib/startDestination';
 import { fireCrossedCues, type ScrollCue } from '@/lib/audio/scrollCues';
+import type { AudioEvent } from '@/lib/audio/events';
+import { JOURNEYS, journeyColorVar } from '@/content/journeys';
 import styles from './FlowOfMoney.module.css';
 
 /**
- * Section 3: the existing scroll-driven animation, integrated not rebuilt.
- * The GSAP timeline and the SVG scene markup below are the original file's,
- * unchanged except for the palette swap (every hardcoded hex now routes
- * through a MoneyOrbit token).
+ * Section 3, "Flow of Money", rebuilt (Oct 2026).
  *
- * One necessary adaptation: the original measured scroll against the whole
- * document, because it WAS the whole document. Here it sits below a static
- * hero, so progress is measured against this section's own bounds instead.
- * Same formula (scrolled / scrollable), different reference element.
+ * Same idea as the original: one scroll-scrubbed walk through all eleven
+ * journeys, each with a small working demonstration, ending on the CTA.
+ * The wireframe map is replaced by chapters: a headline on the left and a
+ * live, real-numbers visual on the right, with a progress rail in the
+ * journeys' own colours. Every number shown is computed here, not typed in.
  *
- * GSAP is imported dynamically so it does not block first paint of the hero
- * (Section 16).
+ * Mechanics kept from the original on purpose:
+ *  - progress = scrolled / scrollable within this section (sticky stage),
+ *    eased toward the target each frame;
+ *  - audio cues fire on crossing the same named milestones;
+ *  - GSAP is imported lazily so it never blocks first paint.
  */
+
+/* ---------- numbers the visuals draw (computed once, module level) ---------- */
+
+const INFL_ITEMS = [
+  { name: 'Cutting chai', from: 10, to: 15 },
+  { name: 'Bus ticket', from: 15, to: 25 },
+  { name: 'Notebook', from: 30, to: 45 },
+  { name: 'Samosa', from: 12, to: 20 },
+];
+const INFL_FROM = INFL_ITEMS.reduce((s, i) => s + i.from, 0);
+const INFL_TO = INFL_ITEMS.reduce((s, i) => s + i.to, 0);
+
+const SALARY = 30_000;
+
+/* Credit card at 3.5% a month, paying the larger of 5% or ₹500. */
+const CARD = (() => {
+  let bal = 20_000, interest = 0;
+  const pts: number[] = [bal];
+  for (let m = 1; m <= 60; m++) {
+    const i = bal * 0.035;
+    interest += i;
+    bal = Math.max(0, bal + i - Math.max(bal * 0.05, 500));
+    pts.push(bal);
+  }
+  return { pts, interest: Math.round(interest), left: Math.round(bal) };
+})();
+
+/* ₹10,000 compounding at 12% for 30 years, against simple interest. */
+const COMP = Array.from({ length: 31 }, (_, y) => 10_000 * Math.pow(1.12, y));
+const SIMPLE = Array.from({ length: 31 }, (_, y) => 10_000 * (1 + 0.12 * y));
+
+/* A deterministic bumpy index path (illustrative): quarterly steps with
+   real swings and one crash that takes it below savings for a while,
+   before it ends ahead. Against a flat savings path. */
+const MARKET = (() => {
+  let s = 11, v = 100;
+  const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+  return Array.from({ length: 41 }, (_, i) => {
+    if (i) v *= 1 + 0.034 + (rnd() - 0.5) * 0.18;
+    if (i === 13) v *= 0.76;
+    return v;
+  });
+})();
+const SAVINGS = Array.from({ length: 41 }, (_, i) => 100 * Math.pow(1.009, i));
+
+const inr = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN');
+
+function linePath(vals: number[], x0: number, x1: number, y0: number, y1: number, max: number) {
+  return vals.map((v, i) => {
+    const x = x0 + ((x1 - x0) * i) / (vals.length - 1);
+    const y = y0 - ((y0 - y1) * v) / max;
+    return `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join('');
+}
+
+/* ---------- the chapter copy, in journey order ---------- */
+
+const CHAPTERS: { slug: string; head: string; line: string; cue: AudioEvent }[] = [
+  { slug: 'inflation', head: 'Same ₹100. It buys less every year.', line: 'Prices creep up, so the note in your pocket quietly covers less.', cue: 'warning' },
+  { slug: 'credit-score', head: 'A number that remembers every payment.', line: 'On time, it climbs slowly. Miss one, and it drops fast.', cue: 'branch' },
+  { slug: 'budgeting', head: 'Decide where it goes before it goes.', line: 'Split the month first, spend second.', cue: 'node_arrive' },
+  { slug: 'investments', head: 'More return means bigger swings.', line: 'Every place money can grow sits somewhere on this line.', cue: 'saving' },
+  { slug: 'banking', head: 'One tap, two banks, two seconds.', line: 'This is the route a UPI payment actually takes.', cue: 'payment' },
+  { slug: 'credit-debt', head: 'The minimum payment is a trap.', line: 'Pay only the minimum and the balance barely moves.', cue: 'credit' },
+  { slug: 'money-math', head: 'Growth on top of growth.', line: 'Slow for years, then suddenly steep. That is compounding.', cue: 'compounding' },
+  { slug: 'investing-basics', head: 'Bumpy, then ahead.', line: 'Markets swing along the way. Time is what smooths them out.', cue: 'investing' },
+  { slug: 'destinations', head: 'Every rupee ends up somewhere.', line: 'Spend, save, invest, lend or give. You choose the split.', cue: 'node_arrive' },
+  { slug: 'planning', head: 'Give a goal a date.', line: 'Then the monthly number works itself out.', cue: 'node_arrive' },
+  { slug: 'final-challenge', head: 'Now run a whole life.', line: 'A salary, surprises and choices, year after year.', cue: 'node_arrive' },
+];
+
+/* Stage geometry (SVG units). */
+const W = 560, H = 420;
+
 export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
   const router = useRouter();
   const sectionRef = useRef<HTMLDivElement>(null);
   const [reduced, setReduced] = useState(false);
-
-  /* Always route through resolveStartDestination so the CTA is correct for a
-     returning student, not just a first-time visitor. Resolved on click rather
-     than at render: it reads localStorage, which is not available during SSR
-     and would otherwise hydrate with the wrong destination. */
   const start = onStart ?? (() => router.push(resolveStartDestination().href));
 
   useEffect(() => {
@@ -36,300 +108,200 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
     setReduced(mq.matches);
     if (mq.matches) return;
 
-    let raf = 0;
-    let killed = false;
-    let cleanup = () => {};
-    let target = 0;
-    let current = 0;
-    let prevProgress = 0;
+    let raf = 0, killed = false, cleanup = () => {};
+    let target = 0, current = 0, prevProgress = 0;
 
     (async () => {
       const { gsap } = await import('gsap');
-      if (killed) return;
+      const root = sectionRef.current;
+      if (killed || !root) return;
+      const q = gsap.utils.selector(root);
+      /* GSAP cannot interpolate var(--x), so colours are resolved to real values. */
+      const css = getComputedStyle(root);
+      const cv = (name: string) => css.getPropertyValue(name).trim();
+      const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.inOut' } });
 
-  const tl = gsap.timeline({ paused: true });
+      /* Counter helper: tweens a number into an element's text. */
+      const count = (sel: string, from: number, to: number, at: number | string, dur: number, fmt = inr) => {
+        const el = q(sel)[0] as Element | undefined;
+        if (!el) return;
+        const o = { v: from };
+        el.textContent = fmt(from);
+        tl.to(o, { v: to, duration: dur, ease: 'none', onUpdate: () => { el.textContent = fmt(o.v); } }, at);
+      };
+      const draw = (sel: string) => q(sel).forEach((p) => {
+        const len = (p as unknown as SVGPathElement).getTotalLength?.() ?? 1000;
+        gsap.set(p, { strokeDasharray: len, strokeDashoffset: len });
+      });
 
-  // Helpers for camera positioning
-  const W = 1920, H = 1080;
-  const cx = (x: number) => W / 2 - x;
-  const cy = (y: number) => H / 2 - y;
+      /* ---------- initial state ---------- */
+      gsap.set(q('[data-ch]'), { autoAlpha: 0, y: 40 });
+      gsap.set(q('[data-scene]'), { autoAlpha: 0, scale: 0.96, transformOrigin: '50% 50%' });
+      gsap.set(q('[data-rail-fill]'), { scaleX: 0, transformOrigin: 'left center' });
+      gsap.set(q('[data-chrome]'), { autoAlpha: 0 });
+      gsap.set(q('[data-finale] > *'), { autoAlpha: 0, y: 30 });
+      draw('[data-draw]');
+      gsap.set(q('[data-rdot]'), { scale: 0.4, transformOrigin: '50% 50%' });
+      gsap.set(q('[data-udone]'), { scale: 0.6, transformOrigin: '50% 50%' });
 
-  const p = "#protagonist";
-  const c = "#camera";
-  const pCore = "#p-core";
+      /* ---------- intro ---------- */
+      tl.addLabel('intro', 0)
+        .fromTo(q('[data-coin]'), { scale: 0.4, autoAlpha: 0 }, { scale: 1, autoAlpha: 1, duration: 1, ease: 'back.out(1.6)' }, 0)
+        .fromTo(q('[data-intro-a]'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.8 }, 0.2)
+        .fromTo(q('[data-intro-b]'), { autoAlpha: 0, y: 30 }, { autoAlpha: 1, y: 0, duration: 0.8 }, 1.1)
+        .to(q('[data-intro]'), { autoAlpha: 0, y: -60, duration: 0.8 }, 2.4)
+        .to(q('[data-coin]'), { scale: 0.18, x: () => -window.innerWidth * 0.36, y: () => window.innerHeight * 0.4, autoAlpha: 0, duration: 0.9 }, 2.4)
+        .to(q('[data-chrome]'), { autoAlpha: 1, duration: 0.6 }, 2.8);
 
-  // Initialize positions
-  gsap.set(p, { x: 960, y: 300, scale: 0 });
-  gsap.set(c, { x: cx(960), y: cy(300), scale: 1 });
-  gsap.set("#active-path", { strokeDasharray: 6000, strokeDashoffset: 6000 });
+      /* ---------- chapters ---------- */
+      const SPAN = 3.4; // timeline units per chapter
+      let t = 3.2;
+      CHAPTERS.forEach((ch, i) => {
+        const label = `ch${i}`;
+        tl.addLabel(label, t);
+        const chEl = q(`[data-ch="${i}"]`), sc = q(`[data-scene="${i}"]`);
+        tl.to(chEl, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'power3.out' }, t)
+          .to(sc, { autoAlpha: 1, scale: 1, duration: 0.7, ease: 'power3.out' }, t + 0.1)
+          .to(q(`[data-rail-fill="${i}"]`), { scaleX: 1, duration: SPAN, ease: 'none' }, t);
+        if (i < CHAPTERS.length - 1) {
+          tl.to(chEl, { autoAlpha: 0, y: -40, duration: 0.5, ease: 'power2.in' }, t + SPAN - 0.5)
+            .to(sc, { autoAlpha: 0, scale: 1.03, duration: 0.5, ease: 'power2.in' }, t + SPAN - 0.5);
+        }
+        const a = t + 0.6; // action starts once the scene has landed
 
-  // ==========================================
-  // BUILD THE MASTER TIMELINE
-  // We use arbitrary durations (e.g., 1, 2, 3)
-  // because the whole timeline will be scrubbed 0 to 1.
-  // ==========================================
+        switch (ch.slug) {
+          case 'inflation': {
+            count('[data-yr]', 2015, 2025, a, 1.8, (v) => String(Math.round(v)));
+            INFL_ITEMS.forEach((it, k) => count(`[data-ip="${k}"]`, it.from, it.to, a, 1.8));
+            count('[data-itot]', INFL_FROM, INFL_TO, a, 1.8);
+            tl.fromTo(q('[data-ibar]'), { attr: { width: (INFL_FROM / 120) * 440 } }, { attr: { width: (INFL_TO / 120) * 440 }, duration: 1.8, ease: 'none' }, a)
+              // The moment the basket passes ₹100 (computed, not eyeballed).
+              .to(q('[data-ibar]'), { fill: cv('--danger-lift'), duration: 0.15 }, a + 1.8 * ((100 - INFL_FROM) / (INFL_TO - INFL_FROM)))
+              .to(q('[data-iover]'), { autoAlpha: 1, duration: 0.3 }, a + 1.8 * ((100 - INFL_FROM) / (INFL_TO - INFL_FROM)) + 0.1);
+            break;
+          }
+          case 'credit-score': {
+            const seq = [650, 668, 684, 699, 712, 724, 735, 746, 688, 697, 706, 715];
+            const ang = (s: number) => ((s - 300) / 600) * 180 - 90;
+            const arcLen = Math.PI * 150;
+            seq.forEach((s, k) => {
+              const at = a + k * 0.16;
+              const bad = k === 8;
+              tl.to(q(`[data-cm="${k}"]`), { fill: bad ? cv('--danger-lift') : cv('--good-lift'), scale: 1.25, duration: 0.12, transformOrigin: '50% 50%' }, at)
+                .to(q(`[data-cm="${k}"]`), { scale: 1, duration: 0.12 }, at + 0.12)
+                .to(q('[data-needle]'), { rotation: ang(s), svgOrigin: '280 260', duration: 0.16, ease: bad ? 'power3.in' : 'power1.out' }, at)
+                .to(q('[data-garc]'), { strokeDashoffset: arcLen * (1 - (s - 300) / 600), stroke: bad ? cv('--danger-lift') : cv('--n20'), duration: 0.16 }, at);
+              if (k === 9) tl.to(q('[data-garc]'), { stroke: cv('--n20'), duration: 0.3 }, at);
+            });
+            gsap.set(q('[data-needle]'), { rotation: ang(650), svgOrigin: '280 260' });
+            gsap.set(q('[data-garc]'), { strokeDasharray: arcLen, strokeDashoffset: arcLen * (1 - 350 / 600) });
+            count('[data-score]', 650, 746, a, 8 * 0.16, (v) => String(Math.round(v)));
+            count('[data-score]', 746, 688, a + 8 * 0.16, 0.16, (v) => String(Math.round(v)));
+            count('[data-score]', 688, 715, a + 9 * 0.16, 3 * 0.16, (v) => String(Math.round(v)));
+            tl.to(q('[data-miss]'), { autoAlpha: 1, duration: 0.2 }, a + 8 * 0.16);
+            break;
+          }
+          case 'budgeting': {
+            tl.to(q('[data-bseg="0"]'), { attr: { x: 40, width: 236 }, duration: 0.8 }, a)
+              .to(q('[data-bseg="1"]'), { attr: { x: 284, width: 140 }, duration: 0.8 }, a)
+              .to(q('[data-bseg="2"]'), { attr: { x: 432, width: 88 }, duration: 0.8 }, a)
+              .to(q('[data-blab]'), { autoAlpha: 1, y: 0, stagger: 0.12, duration: 0.4 }, a + 0.6);
+            count('[data-bv="0"]', 0, SALARY * 0.5, a + 0.6, 0.8);
+            count('[data-bv="1"]', 0, SALARY * 0.3, a + 0.7, 0.8);
+            count('[data-bv="2"]', 0, SALARY * 0.2, a + 0.8, 0.8);
+            break;
+          }
+          case 'investments': {
+            tl.to(q('[data-rtrend]'), { strokeDashoffset: 0, duration: 1, ease: 'none' }, a)
+              .to(q('[data-rdot]'), { autoAlpha: 1, scale: 1, stagger: 0.22, duration: 0.3, ease: 'back.out(2)' }, a + 0.2);
+            break;
+          }
+          case 'banking': {
+            tl.to(q('[data-upath]'), { strokeDashoffset: 0, duration: 1.4, ease: 'none' }, a)
+              .to(q('[data-upkt]'), { autoAlpha: 1, duration: 0.1 }, a);
+            [0, 1, 2, 3].forEach((k) => tl.to(q(`[data-unode="${k}"]`), { stroke: cv('--n200'), fill: 'rgba(229,163,43,.14)', duration: 0.2 }, a + k * 0.45));
+            tl.to(q('[data-upkt]'), { attr: { cx: 470 }, duration: 1.4, ease: 'none' }, a)
+              .to(q('[data-upkt]'), { autoAlpha: 0, duration: 0.1 }, a + 1.4)
+              .to(q('[data-udone]'), { autoAlpha: 1, scale: 1, duration: 0.4, ease: 'back.out(2)' }, a + 1.45);
+            break;
+          }
+          case 'credit-debt': {
+            tl.to(q('[data-cline]'), { strokeDashoffset: 0, duration: 2, ease: 'none' }, a);
+            count('[data-cint]', 0, CARD.interest, a, 2);
+            count('[data-cleft]', 20_000, CARD.left, a, 2);
+            break;
+          }
+          case 'money-math': {
+            /* One tween drives the year; the rupee value is derived from it,
+               so the counter always matches the tip of the curve. */
+            tl.to(q('[data-mcomp]'), { strokeDashoffset: 0, duration: 2, ease: 'none' }, a)
+              .to(q('[data-msimp]'), { strokeDashoffset: 0, duration: 2, ease: 'none' }, a);
+            const yrEl = q('[data-myr]')[0], valEl = q('[data-mval]')[0];
+            const o = { y: 0 };
+            tl.to(o, { y: 30, duration: 2, ease: 'none', onUpdate: () => {
+              yrEl.textContent = `Year ${Math.round(o.y)}`;
+              valEl.textContent = inr(10_000 * Math.pow(1.12, Math.round(o.y)));
+            } }, a);
+            break;
+          }
+          case 'investing-basics': {
+            tl.to(q('[data-ksav]'), { strokeDashoffset: 0, duration: 2, ease: 'none' }, a)
+              .to(q('[data-kmkt]'), { strokeDashoffset: 0, duration: 2, ease: 'none' }, a)
+              .to(q('[data-kend]'), { autoAlpha: 1, duration: 0.3 }, a + 1.9);
+            break;
+          }
+          case 'destinations': {
+            tl.to(q('[data-dflow]'), { strokeDashoffset: 0, stagger: 0.15, duration: 0.9 }, a)
+              .to(q('[data-dlab]'), { autoAlpha: 1, x: 0, stagger: 0.15, duration: 0.4 }, a + 0.5);
+            break;
+          }
+          case 'planning': {
+            tl.to(q('[data-paxis]'), { strokeDashoffset: 0, duration: 0.6, ease: 'none' }, a);
+            [0, 1, 2].forEach((k) => tl.to(q(`[data-goal="${k}"]`), { autoAlpha: 1, y: 0, duration: 0.45, ease: 'back.out(1.6)' }, a + 0.5 + k * 0.4));
+            break;
+          }
+          case 'final-challenge': {
+            tl.to(q('[data-lline]'), { strokeDashoffset: 0, duration: 2, ease: 'none' }, a);
+            [0, 1, 2].forEach((k) => tl.to(q(`[data-lev="${k}"]`), { autoAlpha: 1, y: 0, duration: 0.3 }, a + 0.35 + k * 0.6));
+            break;
+          }
+        }
+        t += SPAN;
+      });
 
-  // 1. START
-  tl.to(p, { scale: 1, duration: 1, ease: "back.out(1.5)" }, 0)
-  .to("#start-t1", { opacity: 0, y: -50, duration: 1 }, 0.5)
-  .to("#start-t2", { opacity: 1, y: -20, duration: 1 }, 0.5)
-  .to("#start-t2", { opacity: 0, duration: 1 }, 2)
-  .to("#active-path", { strokeDashoffset: 5800, duration: 1 }, 1);
+      /* ---------- finale ---------- */
+      tl.addLabel('finale', t)
+        .to(q(`[data-ch="${CHAPTERS.length - 1}"], [data-scene="${CHAPTERS.length - 1}"]`), { autoAlpha: 0, y: -30, duration: 0.6 }, t)
+        .to(q('[data-stage]'), { autoAlpha: 0, scale: 0.97, duration: 0.6 }, t)
+        .to(q('[data-finale] > *'), { autoAlpha: 1, y: 0, stagger: 0.15, duration: 0.7, ease: 'power3.out' }, t + 0.4)
+        .set(q('[data-finale]'), { pointerEvents: 'auto' }, t + 0.8)
+        .to({}, { duration: 1.2 }, t + 1.2); // hold on the CTA
 
-  // 2. INFLATION -> Move to (1420, 300)
-  tl.to(p, { x: 1420, y: 300, duration: 3, ease: "power1.inOut" }, "inflation")
-  .to(c, { x: cx(1420), y: cy(300), duration: 3, ease: "power1.inOut" }, "inflation")
-  .to("#scene-inflation", { opacity: 1, duration: 1 }, "inflation+=0.5")
-  .to("#active-path", { strokeDashoffset: 5340, duration: 3 }, "inflation");
-
-  /* Inflation action: four everyday prices close in on the same rupee. The
-     four particles travel INWARD, which is the point — nothing is leaving
-     the account, the note is simply being asked to cover more. */
-  tl.to("#infl-p1", { opacity: 1, duration: 0.2 }, "inflation+=1.5")
-  .to("#infl-p1", { x: 170, y: 150, duration: 1, ease: "power1.in" }, "inflation+=1.7")
-  .to("#infl-p1", { opacity: 0, duration: 0.1 }, "inflation+=2.6");
-  tl.to("#infl-p2", { opacity: 1, duration: 0.2 }, "inflation+=1.6")
-  .to("#infl-p2", { x: -170, y: 150, duration: 1, ease: "power1.in" }, "inflation+=1.8")
-  .to("#infl-p2", { opacity: 0, duration: 0.1 }, "inflation+=2.7");
-  tl.to("#infl-p3", { opacity: 1, duration: 0.2 }, "inflation+=1.7")
-  .to("#infl-p3", { x: 170, y: -150, duration: 1, ease: "power1.in" }, "inflation+=1.9")
-  .to("#infl-p3", { opacity: 0, duration: 0.1 }, "inflation+=2.8");
-  tl.to("#infl-p4", { opacity: 1, duration: 0.2 }, "inflation+=1.8")
-  .to("#infl-p4", { x: -170, y: -150, duration: 1, ease: "power1.in" }, "inflation+=2.0")
-  .to("#infl-p4", { opacity: 0, duration: 0.1 }, "inflation+=2.9");
-
-  // The note itself shrinks rather than pulsing bigger: same rupee, less reach.
-  tl.to(pCore, { scale: 0.78, duration: 0.5, ease: "power2.out" }, "inflation+=2.7");
-
-  // 3. CREDIT SCORE -> Move to (1520, 600)
-  tl.to(p, { x: 1520, y: 600, duration: 3, ease: "power1.inOut" }, "creditscore")
-  .to(c, { x: cx(1520), y: cy(600), duration: 3, ease: "power1.inOut" }, "creditscore")
-  .to("#scene-credit-score", { opacity: 1, duration: 1 }, "creditscore+=0.5")
-  .to("#scene-inflation", { opacity: 0.3, duration: 1 }, "creditscore")
-  .to(pCore, { scale: 1, duration: 1 }, "creditscore")
-  .to("#active-path", { strokeDashoffset: 4940, duration: 3 }, "creditscore");
-
-  // Credit score action: a missed payment splits off down the red path
-  tl.to("#missed-ghost", { opacity: 1, duration: 0.2 }, "creditscore+=2.5")
-  .to("#missed-ghost", { x: 230, duration: 1, ease: "power1.out" }, "creditscore+=2.7")
-  .to("#missed-ghost", { opacity: 0, duration: 0.5 }, "creditscore+=3.5");
-
-  // 4. BUDGETING -> Move to (1000, 800)
-  tl.to(p, { x: 1000, y: 800, duration: 4, ease: "power1.inOut" }, "budget")
-  .to(c, { x: cx(1000), y: cy(800), duration: 4, ease: "power1.inOut" }, "budget")
-  .to("#scene-budget", { opacity: 1, duration: 1 }, "budget+=1")
-  .to("#scene-credit-score", { opacity: 0.3, duration: 1 }, "budget")
-  .to("#active-path", { strokeDashoffset: 4340, duration: 4 }, "budget");
-
-  // Budgeting action: Fill buckets
-  tl.to("#bp1", { opacity: 1, duration: 0.1 }, "budget+=3")
-  .to("#bp1", { x: -110, duration: 0.5, ease: "power2.out" }, "budget+=3.1")
-  .to("#bp1", { y: 150, duration: 0.5, ease: "power2.in" }, "budget+=3.1")
-  .to("#bp1", { opacity: 0, duration: 0.1 }, "budget+=3.6")
-  .to("#fill-needs", { height: 60, y: 58, duration: 0.5 }, "budget+=3.6")
-  .to("#txt-needs", { innerHTML: "50%", snap: { innerHTML: 1 }, duration: 0.5 }, "budget+=3.6");
-
-  tl.to("#bp2", { opacity: 1, duration: 0.1 }, "budget+=3.2")
-  .to("#bp2", { x: 0, duration: 0.5, ease: "power2.out" }, "budget+=3.3")
-  .to("#bp2", { y: 150, duration: 0.5, ease: "power2.in" }, "budget+=3.3")
-  .to("#bp2", { opacity: 0, duration: 0.1 }, "budget+=3.8")
-  .to("#fill-wants", { height: 36, y: 82, duration: 0.5 }, "budget+=3.8")
-  .to("#txt-wants", { innerHTML: "30%", snap: { innerHTML: 1 }, duration: 0.5 }, "budget+=3.8");
-
-  tl.to("#bp3", { opacity: 1, duration: 0.1 }, "budget+=3.4")
-  .to("#bp3", { x: 110, duration: 0.5, ease: "power2.out" }, "budget+=3.5")
-  .to("#bp3", { y: 150, duration: 0.5, ease: "power2.in" }, "budget+=3.5")
-  .to("#bp3", { opacity: 0, duration: 0.1 }, "budget+=4.0")
-  .to("#fill-save", { height: 24, y: 94, duration: 0.5 }, "budget+=4.0")
-  .to("#txt-save", { innerHTML: "20%", snap: { innerHTML: 1 }, duration: 0.5 }, "budget+=4.0");
-
-  // 5. BANKING -> Move to (500, 800)
-  tl.to(p, { x: 500, y: 800, duration: 3, ease: "power1.inOut" }, "bank")
-  .to(c, { x: cx(500), y: cy(800), duration: 3, ease: "power1.inOut" }, "bank")
-  .to("#scene-bank", { opacity: 1, duration: 1 }, "bank+=0.5")
-  .to("#scene-budget", { opacity: 0.3, duration: 1 }, "bank")
-  .to("#active-path", { strokeDashoffset: 3840, duration: 3 }, "bank");
-
-  // Banking action: Network ping
-  tl.to("#upi-particle", { opacity: 1, duration: 0.1 }, "bank+=2.5")
-  .to("#upi-particle", { x: -100, y: -100, duration: 0.2 }, "bank+=2.6")
-  .to("#upi-particle", { x: -200, y: -50, duration: 0.2 }, "bank+=2.8")
-  .to("#upi-particle", { x: 100, y: -80, duration: 0.2 }, "bank+=3.0")
-  .to("#upi-particle", { x: 200, y: 0, duration: 0.2 }, "bank+=3.2")
-  .to("#upi-particle", { x: 0, y: 0, duration: 0.2 }, "bank+=3.4")
-  .to("#upi-particle", { opacity: 0, duration: 0.1 }, "bank+=3.6");
-
-  // 6. SAVING -> Move to (400, 1100)
-  tl.to(p, { x: 400, y: 1100, duration: 3, ease: "power1.inOut" }, "save")
-  .to(c, { x: cx(400), y: cy(1100), duration: 3, ease: "power1.inOut" }, "save")
-  .to("#scene-save", { opacity: 1, duration: 1 }, "save+=0.5")
-  .to("#scene-bank", { opacity: 0.3, duration: 1 }, "save")
-  .to("#active-path", { strokeDashoffset: 3500, duration: 3 }, "save");
-
-  // Saving action: Expense hits reserve
-  tl.to("#expense-group", { x: 300, duration: 0.5, ease: "power2.in" }, "save+=2.5")
-  .to("#reserve-shield", { scale: 0.9, opacity: 1, stroke: "#F26D7D", duration: 0.1 }, "save+=3")
-  .to("#expense-group", { opacity: 0, scale: 0, duration: 0.2 }, "save+=3")
-  .to("#reserve-shield", { scale: 1, stroke: "#58C7F3", opacity: 0.5, duration: 0.5, ease: "elastic.out(1, 0.3)" }, "save+=3.1");
-
-  // 7. CREDIT -> Move to (1000, 1300)
-  tl.to(p, { x: 1000, y: 1300, duration: 4, ease: "power1.inOut" }, "credit")
-  .to(c, { x: cx(1000), y: cy(1300), duration: 4, ease: "power1.inOut" }, "credit")
-  .to("#scene-credit", { opacity: 1, duration: 1 }, "credit+=1")
-  .to("#scene-save", { opacity: 0.3, duration: 1 }, "credit")
-  .to("#active-path", { strokeDashoffset: 2800, duration: 4 }, "credit");
-
-  // Credit action: Borrow enters, Repay leaves
-  tl.to("#credit-in-p", { opacity: 1, duration: 0.1 }, "credit+=1.5")
-  .to("#credit-in-p", { x: 150, y: 100, duration: 0.8, ease: "power1.in" }, "credit+=1.6")
-  .to("#credit-in-p", { opacity: 0, duration: 0.1 }, "credit+=2.4")
-  .to(pCore, { scale: 1.6, fill: "#F4B860", duration: 0.5 }, "credit+=2.4")
-
-  .to(pCore, { scale: 0.8, fill: "#111318", duration: 0.5 }, "credit+=3.5")
-  .to("#credit-msg", { opacity: 1, y: -20, duration: 0.5 }, "credit+=3.5");
-
-  // 8. MATH -> Move to (1420, 1300)
-  tl.to(p, { x: 1420, y: 1300, duration: 3, ease: "power1.inOut" }, "math")
-  .to(c, { x: cx(1420), y: cy(1300), duration: 3, ease: "power1.inOut" }, "math")
-  .to("#scene-math", { opacity: 1, duration: 1 }, "math+=0.5")
-  .to("#scene-credit", { opacity: 0.3, duration: 1 }, "math")
-  .to("#active-path", { strokeDashoffset: 2380, duration: 3 }, "math");
-
-  // Math action: Compounding
-  tl.to("#exp-curve", { strokeDashoffset: 0, duration: 2, ease: "power2.inOut" }, "math+=2")
-  .to(".mc", { opacity: 1, stagger: 0.2, duration: 0.5 }, "math+=2");
-
-  // 9. INVESTING -> Move to (1520, 1600)
-  tl.to(p, { x: 1520, y: 1600, duration: 3, ease: "power1.inOut" }, "invest")
-  .to(c, { x: cx(1520), y: cy(1600), duration: 3, ease: "power1.inOut" }, "invest")
-  .to("#scene-invest", { opacity: 1, duration: 1 }, "invest+=0.5")
-  .to("#scene-math", { opacity: 0.3, duration: 1 }, "invest")
-  .to("#active-path", { strokeDashoffset: 2000, duration: 3 }, "invest");
-
-  // Invest action: Split and traverse
-  tl.to("#inv-p1", { opacity: 1, duration: 0.2 }, "invest+=2")
-  .to("#inv-p2", { opacity: 1, duration: 0.2 }, "invest+=2")
-  .to("#inv-p3", { opacity: 1, duration: 0.2 }, "invest+=2")
-  .to(p, { opacity: 0, duration: 0.2 }, "invest+=2") // Hide main temporarily
-
-  // Move ghost particles along paths
-  .to("#inv-p1", { x: 0, y: 100, duration: 0.5, ease: "sine.inOut" }, "invest+=2.2")
-  .to("#inv-p1", { x: -100, y: 200, duration: 0.5, ease: "power1.inOut" }, "invest+=2.7")
-  .to("#inv-p1", { x: -100, y: 300, duration: 0.5, ease: "power1.inOut" }, "invest+=3.2")
-
-  .to("#inv-p2", { x: -70, y: 150, duration: 1, ease: "none" }, "invest+=2.2")
-  .to("#inv-p2", { x: -100, y: 300, duration: 0.5, ease: "none" }, "invest+=3.2")
-
-  .to("#inv-p3", { x: 30, y: 150, duration: 1, ease: "power1.inOut" }, "invest+=2.2")
-  .to("#inv-p3", { x: -100, y: 300, duration: 0.5, ease: "power1.inOut" }, "invest+=3.2")
-
-  // Recombine
-  .to(p, { x: 1420, y: 1800, duration: 0.01 }, "invest+=3.7") // Snap main particle to end
-  .to(c, { x: cx(1420), y: cy(1800), duration: 0.5 }, "invest+=3.7")
-  .to(p, { opacity: 1, duration: 0.2 }, "invest+=3.7")
-  .to(["#inv-p1", "#inv-p2", "#inv-p3"], { opacity: 0, duration: 0.2 }, "invest+=3.7")
-  .to("#active-path", { strokeDashoffset: 1700, duration: 1 }, "invest+=3.7");
-
-  // 10. DESTINATIONS -> Move to (1000, 1800)
-  tl.to(p, { x: 1000, y: 1800, duration: 3, ease: "power1.inOut" }, "dest")
-  .to(c, { x: cx(1000), y: cy(1800), duration: 3, ease: "power1.inOut" }, "dest")
-  .to("#scene-dest", { opacity: 1, duration: 1 }, "dest+=0.5")
-  .to("#scene-invest", { opacity: 0.3, duration: 1 }, "dest")
-  .to("#active-path", { strokeDashoffset: 1280, duration: 3 }, "dest");
-
-  // Dest action: Orbit nodes
-  tl.to("#dest-nodes", { rotation: 360, transformOrigin: "1000px 1800px", duration: 4, ease: "power1.inOut" }, "dest+=1");
-
-  // 11. PLANNING -> Move to (600, 1800)
-  tl.to(p, { x: 600, y: 1800, duration: 3, ease: "power1.inOut" }, "plan")
-  .to(c, { x: cx(600), y: cy(1800), duration: 3, ease: "power1.inOut" }, "plan")
-  .to("#scene-planning", { opacity: 1, duration: 1 }, "plan+=0.5")
-  .to("#scene-dest", { opacity: 0.3, duration: 1 }, "plan")
-  .to("#active-path", { strokeDashoffset: 880, duration: 3 }, "plan");
-
-  /* Planning action: three goals land in order, nearest first. The money does
-     not move here — this is the one stop that is about deciding where it is
-     going, so the protagonist holds still and the map fills in around it. */
-  tl.to("#goal-1", { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "plan+=2.4")
-  .to("#goal-2", { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "plan+=2.8")
-  .to("#goal-3", { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "plan+=3.2")
-  .to(pCore, { scale: 1.2, duration: 0.3, yoyo: true, repeat: 1 }, "plan+=3.6");
-
-  // Move on
-  tl.to(p, { x: 500, y: 1800, duration: 1, ease: "power1.inOut" }, "plan+=4.2")
-  .to(c, { x: cx(500), y: cy(1800), duration: 1, ease: "power1.inOut" }, "plan+=4.2")
-  .to("#active-path", { strokeDashoffset: 780, duration: 1 }, "plan+=4.2");
-
-  // 12. FINAL -> Move to (400, 2100)
-  tl.to(p, { x: 400, y: 2100, duration: 3, ease: "power1.inOut" }, "final")
-  .to(c, { x: cx(400), y: cy(2100), duration: 3, ease: "power1.inOut" }, "final")
-  .to("#scene-planning", { opacity: 0.3, duration: 1 }, "final")
-  .to("#active-path", { strokeDashoffset: 0, duration: 3 }, "final");
-
-  // BIG ZOOM OUT
-  tl.to(c, { x: cx(960), y: cy(1200), scale: 0.45, transformOrigin: "960px 1200px", duration: 4, ease: "power2.inOut" }, "zoom")
-  .to("#final-ui", { opacity: 1, pointerEvents: "auto", duration: 2 }, "zoom+=2")
-  ;
-
-  // Make all scenes fully visible again for the overview
-  tl.to(["#scene-inflation", "#scene-credit-score", "#scene-budget", "#scene-bank", "#scene-save", "#scene-credit", "#scene-math", "#scene-invest", "#scene-dest", "#scene-planning"], { opacity: 0.8, duration: 3 }, "zoom");
-
-      /* Section 6: sound at meaningful narrative milestones only, not every
-         frame. The timeline already names every journey node as a GSAP
-         label ("inflation", "creditscore", ... "zoom") — reuse those exact times
-         rather than inventing separate percentage thresholds, so this list
-         stays correct even if the choreography above is retimed later.
-         `node_arrive` is reused for earn/budget/dest, same as the spec's
-         own example reuses one cue for several generic arrivals.
-         `warning` moved from the retired scams stop to Inflation, which is
-         now the first thing the course teaches and the only stop where the
-         money is losing ground without anyone deciding anything. */
       const duration = tl.duration();
-      const cueAt = (label: string) => (tl.labels[label] ?? 0) / duration;
+      const at = (label: string) => (tl.labels[label] ?? 0) / duration;
       const cues: ScrollCue[] = [
-        { progress: 0.001, event: 'flow_start' },
-        { progress: cueAt('inflation'), event: 'warning' },
-        { progress: cueAt('creditscore'), event: 'branch' },
-        { progress: cueAt('budget'), event: 'node_arrive' },
-        { progress: cueAt('bank'), event: 'payment' },
-        { progress: cueAt('save'), event: 'saving' },
-        { progress: cueAt('credit'), event: 'credit' },
-        { progress: cueAt('math'), event: 'compounding' },
-        { progress: cueAt('invest'), event: 'investing' },
-        { progress: cueAt('dest'), event: 'node_arrive' },
-        { progress: cueAt('plan'), event: 'node_arrive' },
-        { progress: cueAt('zoom'), event: 'finale' },
-      ];
-      cues.sort((a, b) => a.progress - b.progress);
+        { progress: 0.001, event: 'flow_start' as AudioEvent },
+        ...CHAPTERS.map((ch, i) => ({ progress: at(`ch${i}`), event: ch.cue })),
+        { progress: at('finale'), event: 'finale' as AudioEvent },
+      ].sort((x, y) => x.progress - y.progress);
 
       const onScroll = () => {
         const el = sectionRef.current;
         if (!el) return;
-        const rect = el.getBoundingClientRect();
-        // Scrollable distance = section height minus one viewport.
         const scrollable = el.offsetHeight - window.innerHeight;
-        // Immediately after hydration the section can still measure 0 for a
-        // frame. Leave the last good value alone rather than clobbering it
-        // to 0 — the ResizeObserver below re-runs this once layout settles.
         if (scrollable <= 0) return;
-        const scrolled = -rect.top;
-        target = Math.max(0, Math.min(1, scrolled / scrollable));
+        target = Math.max(0, Math.min(1, -el.getBoundingClientRect().top / scrollable));
       };
-
       window.addEventListener('scroll', onScroll, { passive: true });
       window.addEventListener('resize', onScroll);
-
-      // Re-measure whenever the spacer's height actually changes: after
-      // hydration, after fonts load, and on orientation change.
       const ro = new ResizeObserver(onScroll);
-      if (sectionRef.current) ro.observe(sectionRef.current);
-
+      ro.observe(root);
       onScroll();
 
       const render = () => {
         const diff = target - current;
-        if (Math.abs(diff) > 0.0001) {
-          current += diff * 0.08;
+        if (Math.abs(diff) > 0.00005) {
+          current += diff * 0.1;
           tl.progress(current);
         }
         fireCrossedCues(prevProgress, current, cues);
@@ -350,348 +322,280 @@ export default function FlowOfMoney({ onStart }: { onStart?: () => void }) {
     return () => { killed = true; cleanup(); };
   }, []);
 
-  /* Reduced motion: no scroll-scrub, no tall spacer. The section still
-     conveys its content and its CTA — it just does not move. */
   if (reduced) {
     return (
       <section className={styles.reducedWrap}>
         <h2 className={styles.reducedTitle}>Now you see how money moves.</h2>
-        <p className={styles.reducedBody}>
-          Everything is connected. Your choices shape the flow.
-        </p>
-        <button className={styles.reducedCta} onClick={start}>Start learning</button>
+        <p className={styles.reducedBody}>Eleven ideas, one path. Every choice changes where your money goes.</p>
+        <ol className={styles.reducedList}>
+          {CHAPTERS.map((ch, i) => (
+            <li key={ch.slug}><span style={{ color: journeyColorVar(JOURNEYS[i]) }}>{String(i + 1).padStart(2, '0')}</span> {ch.head}</li>
+          ))}
+        </ol>
+        <button className={styles.cta} onClick={start}>Start your first lesson</button>
       </section>
     );
   }
 
+  const mono = { fontFamily: 'var(--font-mono)' } as const;
+  const disp = { fontFamily: 'var(--font-display)' } as const;
+
   return (
-    <section ref={sectionRef} className={styles.section}>
+    <section ref={sectionRef} className={styles.section} aria-label="How money moves, in eleven steps">
       <div className={styles.sticky}>
-<svg id="main-svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
-            <defs>
-                {/* Grid Pattern */}
-                <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-                    <path d="M 100 0 L 0 0 0 100" fill="none" stroke="var(--flow-border)" strokeWidth="1"/>
-                    <circle cx="0" cy="0" r="1.5" fill="var(--flow-border)" />
-                </pattern>
+        {/* ---------- intro ---------- */}
+        <div className={styles.intro} data-intro>
+          <h2 className={styles.introA} data-intro-a>Money is everywhere.</h2>
+          <p className={styles.introB} data-intro-b>But where does it actually go?</p>
+        </div>
+        <svg className={styles.coin} data-coin viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <radialGradient id="fm-coin" cx="38%" cy="32%" r="75%">
+              <stop offset="0" stopColor="#F6CF76" /><stop offset="1" stopColor="#B87A14" />
+            </radialGradient>
+          </defs>
+          <circle cx="100" cy="100" r="92" fill="url(#fm-coin)" />
+          <circle cx="100" cy="100" r="78" fill="none" stroke="rgba(80,48,4,.35)" strokeWidth="4" />
+          <text x="100" y="128" textAnchor="middle" fontSize="92" fontWeight="800" fill="rgba(80,48,4,.6)" style={disp}>₹</text>
+        </svg>
 
-                {/* Glow Filters */}
-                <filter id="glow-primary" x="-200%" y="-200%" width="500%" height="500%">
-                    <feGaussianBlur stdDeviation="12" result="blur1" />
-                    <feGaussianBlur stdDeviation="24" result="blur2" />
-                    <feMerge>
-                        <feMergeNode in="blur2" />
-                        <feMergeNode in="blur1" />
-                        <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                </filter>
-                <filter id="glow-red" x="-125%" y="-125%" width="350%" height="350%">
-                    <feGaussianBlur stdDeviation="10" result="blur" />
-                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                </filter>
-                <filter id="glow-green" x="-125%" y="-125%" width="350%" height="350%">
-                    <feGaussianBlur stdDeviation="10" result="blur" />
-                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                </filter>
-                <filter id="glow-cyan" x="-175%" y="-175%" width="450%" height="450%">
-                    <feGaussianBlur stdDeviation="15" result="blur" />
-                    <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-                </filter>
+        {/* ---------- chapter copy ---------- */}
+        <div className={styles.copy} data-chrome>
+          {CHAPTERS.map((ch, i) => {
+            const j = JOURNEYS[i];
+            return (
+              <article key={ch.slug} className={styles.ch} data-ch={i}>
+                <div className={styles.chKicker} style={{ color: journeyColorVar(j) }}>
+                  {String(i + 1).padStart(2, '0')} · {j.shortTitle}
+                </div>
+                <h3 className={styles.chHead}>{ch.head}</h3>
+                <p className={styles.chLine}>{ch.line}</p>
+              </article>
+            );
+          })}
+        </div>
 
-                {/* Gradients */}
-                <linearGradient id="grad-budget" x1="0%" y1="100%" x2="0%" y2="0%">
-                    <stop offset="0%" stopColor="var(--n2000)" stopOpacity="0.8"/>
-                    <stop offset="100%" stopColor="var(--n2000)" stopOpacity="0.1"/>
-                </linearGradient>
-            </defs>
-
-            {/* Background */}
-            <rect width="100%" height="100%" fill="var(--flow-ink)" />
-            
-            {/* Camera Group (Moves inverse to particle to keep it centered) */}
-            <g id="camera">
-                {/* Massive Grid Background */}
-                <rect id="bg-grid" x="-2000" y="-1000" width="6000" height="5000" fill="url(#grid)" />
-
-                {/* The Main Circuit Path */}
-                <path id="base-path" d="
-                    M 960 300 
-                    L 1420 300 Q 1520 300, 1520 400 
-                    L 1520 700 Q 1520 800, 1420 800 
-                    L 500 800 Q 400 800, 400 900 
-                    L 400 1200 Q 400 1300, 500 1300 
-                    L 1420 1300 Q 1520 1300, 1520 1400 
-                    L 1520 1700 Q 1520 1800, 1420 1800 
-                    L 500 1800 Q 400 1800, 400 1900 
-                    L 400 2100
-                " stroke="var(--flow-border)" strokeWidth="6" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                
-                {/* Active Path Overlay (Revealed over time) */}
-                <path id="active-path" d="
-                    M 960 300 
-                    L 1420 300 Q 1520 300, 1520 400 
-                    L 1520 700 Q 1520 800, 1420 800 
-                    L 500 800 Q 400 800, 400 900 
-                    L 400 1200 Q 400 1300, 500 1300 
-                    L 1420 1300 Q 1520 1300, 1520 1400 
-                    L 1520 1700 Q 1520 1800, 1420 1800 
-                    L 500 1800 Q 400 1800, 400 1900 
-                    L 400 2100
-                " stroke="var(--n2000)" strokeWidth="6" fill="none" strokeLinecap="round" strokeLinejoin="round" opacity="0.3"/>
-
-                {/* ================= SCENES CONTENT ================= */}
-
-                {/* Scene 1: START */}
-                <g id="scene-start">
-                    <text id="start-t1" x="960" y="150" textAnchor="middle" fill="var(--paper)" fontSize="72" fontWeight="800" letterSpacing="-2">MONEY IS EVERYWHERE.</text>
-                    <text id="start-t2" x="960" y="220" textAnchor="middle" fill="var(--paper-60)" fontSize="52" opacity="0">But where does it actually go?</text>
+        {/* ---------- visual stage ---------- */}
+        <div className={styles.stageWrap} data-chrome data-stage>
+          <svg className={styles.stage} viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+            {/* 1. Inflation */}
+            <g data-scene="0">
+              <text x="40" y="58" fontSize="13" fill="var(--paper-45)" style={mono}>PRICES IN</text>
+              <text x="40" y="98" fontSize="40" fontWeight="500" fill="var(--paper)" style={mono} data-yr>2015</text>
+              {INFL_ITEMS.map((it, k) => (
+                <g key={it.name} transform={`translate(0 ${140 + k * 44})`}>
+                  <line x1="40" x2="520" y1="18" y2="18" stroke="var(--paper-18)" />
+                  <text x="40" y="8" fontSize="17" fill="var(--paper)">{it.name}</text>
+                  <text x="520" y="8" fontSize="17" textAnchor="end" fill="var(--paper)" style={mono} data-ip={k}>{inr(it.from)}</text>
                 </g>
-
-                {/* Scene 2: INFLATION (Journey 1) */}
-                <g id="scene-inflation" opacity="0.3">
-                    <text x="1420" y="200" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">INFLATION</text>
-                    <text x="1420" y="230" textAnchor="middle" fill="var(--paper-60)" fontSize="24">The same ₹100, every year</text>
-                    
-                    {/* Four everyday prices, all pressing on one note. No figures
-                        here on purpose: the lesson itself carries the verified
-                        numbers, and a headline number on a landing page is the
-                        kind of thing that quietly goes stale. */}
-                    <path d="M 1250 150 Q 1420 150, 1420 300" stroke="var(--danger)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
-                    <path d="M 1590 150 Q 1420 150, 1420 300" stroke="var(--danger)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
-                    <path d="M 1250 450 Q 1420 450, 1420 300" stroke="var(--danger)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
-                    <path d="M 1590 450 Q 1420 450, 1420 300" stroke="var(--danger)" strokeWidth="2" fill="none" strokeDasharray="4,4"/>
-                    
-                    <text x="1240" y="145" textAnchor="end" fill="var(--paper-60)" fontSize="22">Chips</text>
-                    <text x="1600" y="145" textAnchor="start" fill="var(--paper-60)" fontSize="22">Bus fare</text>
-                    <text x="1240" y="460" textAnchor="end" fill="var(--paper-60)" fontSize="22">Milk</text>
-                    <text x="1600" y="460" textAnchor="start" fill="var(--paper-60)" fontSize="22">Notebook</text>
-
-                    {/* Particles for rising prices */}
-                    <circle id="infl-p1" cx="1250" cy="150" r="4" fill="var(--danger)" opacity="0"/>
-                    <circle id="infl-p2" cx="1590" cy="150" r="4" fill="var(--danger)" opacity="0"/>
-                    <circle id="infl-p3" cx="1250" cy="450" r="4" fill="var(--danger)" opacity="0"/>
-                    <circle id="infl-p4" cx="1590" cy="450" r="4" fill="var(--danger)" opacity="0"/>
-                </g>
-
-                {/* Scene 3: CREDIT SCORE (Journey 2) */}
-                <g id="scene-credit-score" opacity="0.3">
-                    <text x="1520" y="520" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">YOUR CREDIT SCORE</text>
-                    
-                    {/* The record splits: every repayment is one or the other */}
-                    <path id="path-missed" d="M 1520 600 L 1750 600" stroke="var(--danger)" strokeWidth="4" fill="none" strokeDasharray="6,6"/>
-                    <circle cx="1750" cy="600" r="12" fill="var(--ink-surface)" stroke="var(--danger)" strokeWidth="3"/>
-                    <text x="1750" y="570" textAnchor="middle" fill="var(--danger)" fontSize="28" fontWeight="bold">MISSED</text>
-                    <text x="1750" y="635" textAnchor="middle" fill="var(--paper-60)" fontSize="22">Stays on the record</text>
-                    
-                    <text x="1450" y="680" textAnchor="end" fill="var(--good)" fontSize="28" fontWeight="bold">ON TIME</text>
-                    <text x="1450" y="705" textAnchor="end" fill="var(--paper-60)" fontSize="22">Builds the number</text>
-
-                    <circle id="missed-ghost" cx="1520" cy="600" r="15" fill="var(--danger)" opacity="0" filter="url(#glow-red)"/>
-                </g>
-
-                {/* Scene 4: BUDGETING */}
-                <g id="scene-budget" opacity="0.3">
-                    <text x="1000" y="700" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">BUDGETING</text>
-                    <text x="1000" y="730" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Directing the flow</text>
-
-                    {/* Buckets */}
-                    <g transform="translate(850, 850)">
-                        <rect x="0" y="0" width="80" height="120" rx="4" fill="none" stroke="var(--flow-border)" strokeWidth="2"/>
-                        <rect id="fill-needs" x="2" y="118" width="76" height="0" rx="2" fill="url(#grad-budget)"/>
-                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="22" fontWeight="500">NEEDS</text>
-                        <text id="txt-needs" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="24" fontWeight="bold">0%</text>
-                    </g>
-                    <g transform="translate(960, 850)">
-                        <rect x="0" y="0" width="80" height="120" rx="4" fill="none" stroke="var(--flow-border)" strokeWidth="2"/>
-                        <rect id="fill-wants" x="2" y="118" width="76" height="0" rx="2" fill="url(#grad-budget)"/>
-                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="22" fontWeight="500">WANTS</text>
-                        <text id="txt-wants" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="24" fontWeight="bold">0%</text>
-                    </g>
-                    <g transform="translate(1070, 850)">
-                        <rect x="0" y="0" width="80" height="120" rx="4" fill="none" stroke="var(--flow-border)" strokeWidth="2"/>
-                        <rect id="fill-save" x="2" y="118" width="76" height="0" rx="2" fill="url(#grad-budget)"/>
-                        <text x="40" y="-15" textAnchor="middle" fill="var(--paper-60)" fontSize="22" fontWeight="500">SAVINGS</text>
-                        <text id="txt-save" x="40" y="145" textAnchor="middle" fill="var(--paper)" fontSize="24" fontWeight="bold">0%</text>
-                    </g>
-
-                    {/* Mini particles */}
-                    <circle id="bp1" cx="1000" cy="800" r="6" fill="var(--n2000)" opacity="0"/>
-                    <circle id="bp2" cx="1000" cy="800" r="6" fill="var(--n2000)" opacity="0"/>
-                    <circle id="bp3" cx="1000" cy="800" r="6" fill="var(--n2000)" opacity="0"/>
-                </g>
-
-                {/* Scene 5: BANKING */}
-                <g id="scene-bank" opacity="0.3">
-                    <text x="500" y="560" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">THE NETWORK</text>
-                    <text x="500" y="602" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Where your money actually travels</text>
-                    
-                    {/* Abstract Network */}
-                    <path d="M 500 800 L 400 700 L 300 750 L 500 800 L 600 720 L 700 800 L 500 800" stroke="var(--flow-border)" strokeWidth="2" fill="none"/>
-                    
-                    {/* Nodes */}
-                    <circle cx="400" cy="700" r="20" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="2"/>
-                    <text x="400" y="662" textAnchor="middle" fill="var(--n50)" fontSize="30" fontWeight="500">BANK</text>
-                    
-                    <circle cx="600" cy="720" r="20" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="2"/>
-                    <text x="632" y="728" textAnchor="start" fill="var(--n50)" fontSize="30" fontWeight="500">PAYMENTS</text>
-                    
-                    <circle cx="300" cy="750" r="15" fill="var(--ink-surface)" stroke="var(--paper-60)" strokeWidth="2"/>
-                    <text x="272" y="757" textAnchor="end" fill="var(--paper-60)" fontSize="30" fontWeight="500">MERCHANT</text>
-
-                    {/* Fast moving particle for UPI effect */}
-                    <circle id="upi-particle" cx="500" cy="800" r="8" fill="var(--n50)" opacity="0" filter="url(#glow-cyan)"/>
-                </g>
-
-                {/* Scene 6: SAVING */}
-                <g id="scene-save" opacity="0.3">
-                    {/* The Reserve Shield */}
-                    <circle id="reserve-shield" cx="400" cy="1100" r="80" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="4" filter="url(#glow-cyan)" opacity="0.5"/>
-                    <text x="400" y="1090" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">EMERGENCY</text>
-                    <text x="400" y="1115" textAnchor="middle" fill="var(--paper)" fontSize="28" fontWeight="bold">FUND</text>
-
-                    {/* Expense Spike */}
-                    <g id="expense-group" transform="translate(100, 1100)">
-                        <path d="M 0 0 L 60 -15 L 120 0 L 60 15 Z" fill="var(--danger)" filter="url(#glow-red)"/>
-                        <text x="60" y="-30" textAnchor="middle" fill="var(--danger)" fontSize="24" fontWeight="bold">₹12,000 EXPENSE</text>
-                    </g>
-                </g>
-
-                {/* Scene 7: CREDIT */}
-                <g id="scene-credit" opacity="0.3">
-                    <text x="1000" y="1180" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">CREDIT</text>
-                    
-                    {/* Borrow In */}
-                    <path d="M 800 1200 Q 900 1200, 950 1300" stroke="var(--n200)" strokeWidth="6" fill="none" strokeDasharray="8,8"/>
-                    <text x="800" y="1180" textAnchor="middle" fill="var(--n200)" fontSize="26">BORROW</text>
-                    <circle id="credit-in-p" cx="800" cy="1200" r="8" fill="var(--n200)" opacity="0"/>
-
-                    {/* Repay Out */}
-                    <path d="M 1050 1300 Q 1150 1300, 1200 1400" stroke="var(--danger)" strokeWidth="10" fill="none" strokeDasharray="8,8"/>
-                    <text x="1200" y="1430" textAnchor="middle" fill="var(--danger)" fontSize="26">REPAY + INTEREST</text>
-                    
-                    <text id="credit-msg" x="1000" y="1400" textAnchor="middle" fill="var(--paper-60)" fontSize="28" opacity="0">Money now = Obligation later.</text>
-                </g>
-
-                {/* Scene 8: MATH */}
-                <g id="scene-math" opacity="0.3">
-                    <text x="1420" y="1150" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">MONEY MATH</text>
-                    <text x="1420" y="1180" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Time & Compounding</text>
-
-                    {/* Axes */}
-                    <line x1="1250" y1="1400" x2="1600" y2="1400" stroke="var(--flow-border)" strokeWidth="2"/>
-                    <line x1="1250" y1="1400" x2="1250" y2="1150" stroke="var(--flow-border)" strokeWidth="2"/>
-                    <text x="1620" y="1405" fill="var(--paper-60)" fontSize="22">TIME</text>
-
-                    {/* Exponential Curve */}
-                    <path id="exp-curve" d="M 1250 1400 Q 1500 1400, 1550 1150" stroke="var(--n200)" strokeWidth="4" fill="none" strokeDasharray="500" strokeDashoffset="500" filter="url(#glow-primary)"/>
-
-                    {/* Clones (Hidden initially) */}
-                    <g id="math-clones">
-                        {/* We will generate these dynamically or just place a few */}
-                        <circle cx="1300" cy="1380" r="10" fill="var(--n2000)" opacity="0" className="mc"/>
-                        <circle cx="1350" cy="1350" r="12" fill="var(--n2000)" opacity="0" className="mc"/>
-                        <circle cx="1400" cy="1300" r="15" fill="var(--n2000)" opacity="0" className="mc"/>
-                        <circle cx="1450" cy="1220" r="18" fill="var(--n2000)" opacity="0" className="mc"/>
-                        <circle cx="1500" cy="1100" r="22" fill="var(--n2000)" opacity="0" className="mc"/>
-                    </g>
-                </g>
-
-                {/* Scene 9: INVESTING */}
-                <g id="scene-invest" opacity="0.3">
-                    <text x="1520" y="1480" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">INVESTING</text>
-                    
-                    {/* Branches */}
-                    {/* Equity (Volatile) */}
-                    <path d="M 1520 1500 Q 1600 1550, 1520 1600 T 1520 1700 L 1420 1800" stroke="var(--danger)" strokeWidth="3" fill="none"/>
-                    <text x="1620" y="1600" fill="var(--danger)" fontSize="22">EQUITY (High Risk)</text>
-                    
-                    {/* Fixed (Straight) */}
-                    <path d="M 1520 1500 L 1450 1650 L 1420 1800" stroke="var(--n50)" strokeWidth="3" fill="none"/>
-                    <text x="1350" y="1650" fill="var(--n50)" fontSize="22">FIXED (Steady)</text>
-                    
-                    {/* Gold (Gentle) */}
-                    <path d="M 1520 1500 Q 1550 1650, 1420 1800" stroke="var(--n200)" strokeWidth="3" fill="none"/>
-                    <text x="1500" y="1680" fill="var(--n200)" fontSize="22">GOLD (Stable)</text>
-
-                    {/* Portfolio Recombine */}
-                    <circle cx="1420" cy="1800" r="30" fill="none" stroke="var(--good)" strokeWidth="4" strokeDasharray="8,4"/>
-                    <text x="1420" y="1750" textAnchor="middle" fill="var(--good)" fontSize="24" fontWeight="bold">PORTFOLIO</text>
-
-                    {/* Ghost particles for branches */}
-                    <circle id="inv-p1" cx="1520" cy="1500" r="8" fill="var(--danger)" opacity="0"/>
-                    <circle id="inv-p2" cx="1520" cy="1500" r="8" fill="var(--n50)" opacity="0"/>
-                    <circle id="inv-p3" cx="1520" cy="1500" r="8" fill="var(--n200)" opacity="0"/>
-                </g>
-
-                {/* Scene 10: DESTINATIONS */}
-                <g id="scene-dest" opacity="0.3">
-                    <text x="1000" y="1650" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">DESTINATIONS</text>
-                    
-                    {/* Orbit Rings */}
-                    <circle cx="1000" cy="1800" r="100" fill="none" stroke="var(--flow-border)" strokeWidth="1"/>
-                    <circle cx="1000" cy="1800" r="150" fill="none" stroke="var(--flow-border)" strokeWidth="1"/>
-
-                    {/* Nodes */}
-                    <g id="dest-nodes">
-                        <g transform="translate(1000, 1700)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n50)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n50)" fontSize="20">STOCKS</text></g>
-                        <g transform="translate(1100, 1800)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n200)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n200)" fontSize="20">GOLD</text></g>
-                        <g transform="translate(1000, 1900)"><circle r="15" fill="var(--ink-surface)" stroke="var(--good)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--good)" fontSize="20">MUTUAL FUNDS</text></g>
-                        <g transform="translate(850, 1800)"><circle r="15" fill="var(--ink-surface)" stroke="var(--n2000)" strokeWidth="2"/><text y="30" textAnchor="middle" fill="var(--n2000)" fontSize="20">FD / RD</text></g>
-                    </g>
-                </g>
-
-                {/* Scene 11: PLANNING (Journey 10) */}
-                <g id="scene-planning" opacity="0.3">
-                    <text x="500" y="1700" textAnchor="middle" fill="var(--paper)" fontSize="44" fontWeight="bold">YOUR MONEY MAP</text>
-                    <text x="500" y="1734" textAnchor="middle" fill="var(--paper-60)" fontSize="24">Goals with dates on them</text>
-
-                    {/* The spine the goals hang off, nearest first */}
-                    <path d="M 600 1800 L 640 1855 L 640 1985" stroke="var(--n100)" strokeWidth="4" fill="none" strokeDasharray="8,8" opacity="0.7"/>
-
-                    <g id="goal-1" opacity="0" transform="translate(40, 0)">
-                        <circle cx="640" cy="1855" r="11" fill="var(--ink-surface)" stroke="var(--n100)" strokeWidth="3"/>
-                        <text x="672" y="1849" fill="var(--paper)" fontSize="24" fontWeight="bold">Phone</text>
-                        <text x="672" y="1876" fill="var(--paper-60)" fontSize="21">6 months</text>
-                    </g>
-                    <g id="goal-2" opacity="0" transform="translate(40, 0)">
-                        <circle cx="640" cy="1920" r="11" fill="var(--ink-surface)" stroke="var(--n100)" strokeWidth="3"/>
-                        <text x="672" y="1914" fill="var(--paper)" fontSize="24" fontWeight="bold">College</text>
-                        <text x="672" y="1941" fill="var(--paper-60)" fontSize="21">5 years</text>
-                    </g>
-                    <g id="goal-3" opacity="0" transform="translate(40, 0)">
-                        <circle cx="640" cy="1985" r="11" fill="var(--ink-surface)" stroke="var(--n100)" strokeWidth="3"/>
-                        <text x="672" y="1979" fill="var(--paper)" fontSize="24" fontWeight="bold">Retiring</text>
-                        <text x="672" y="2006" fill="var(--paper-60)" fontSize="21">40 years</text>
-                    </g>
-                </g>
-
-                {/* FINAL SCENE MARKER */}
-                <g id="scene-final">
-                    <circle cx="400" cy="2100" r="40" fill="var(--ink-surface)" stroke="var(--n2000)" strokeWidth="4"/>
-                    <circle cx="400" cy="2100" r="20" fill="var(--n2000)" filter="url(#glow-primary)"/>
-                </g>
-
-                {/* THE PROTAGONIST PARTICLE */}
-                <g id="protagonist" transform="translate(960, 300)">
-                    <circle id="p-core" r="24" fill="var(--ink-surface)" stroke="var(--n2000)" strokeWidth="6" filter="url(#glow-primary)"/>
-                    <text textAnchor="middle" dominantBaseline="central" fill="var(--paper)" fontSize="44" fontWeight="bold" y="2">₹</text>
-                </g>
-            </g> {/* End Camera */}
-
-            {/* Fixed UI Layer (Appears at the end) */}
-            <g id="final-ui" opacity="0" pointerEvents="none">
-                <rect width="1920" height="1080" fill="var(--flow-ink)" opacity="0.6"/>
-                <text x="960" y="450" textAnchor="middle" fill="var(--paper)" fontSize="72" fontWeight="800" letterSpacing="-1">NOW YOU SEE HOW MONEY MOVES.</text>
-                <text x="960" y="520" textAnchor="middle" fill="var(--paper-60)" fontSize="32">Everything is connected. Your choices shape the flow.</text>
-                
-                {/* CTA Button */}
-                <g transform="translate(810, 600)" className={styles.btnInteractive} onClick={start} role="button" tabIndex={0}>
-                    <rect width="300" height="80" rx="40" fill="var(--n2000)" />
-                    <text x="150" y="48" textAnchor="middle" fill="var(--ink-surface)" fontSize="32" fontWeight="bold">START LEARNING</text>
-                </g>
+              ))}
+              <text x="40" y="346" fontSize="13" fill="var(--paper-45)" style={mono}>BASKET</text>
+              <text x="520" y="346" fontSize="13" textAnchor="end" fill="var(--paper)" style={mono} data-itot>{inr(INFL_FROM)}</text>
+              <rect x="40" y="358" width="440" height="14" rx="7" fill="rgba(251,251,248,.08)" />
+              <rect x="40" y="358" height="14" rx="7" fill="var(--n10)" data-ibar width={(INFL_FROM / 120) * 440} />
+              <line x1={40 + (100 / 120) * 440} x2={40 + (100 / 120) * 440} y1="350" y2="380" stroke="var(--paper)" strokeWidth="2" />
+              <text x={40 + (100 / 120) * 440} y="398" fontSize="12" textAnchor="middle" fill="var(--paper-60)" style={mono}>your ₹100</text>
+              <text x="40" y="398" fontSize="12" fill="var(--danger-lift)" style={mono} data-iover opacity="0">₹100 no longer covers it</text>
             </g>
 
-        </svg>      </div>
+            {/* 2. Credit score */}
+            <g data-scene="1">
+              <path d="M130,260 A150,150 0 0 1 430,260" fill="none" stroke="rgba(251,251,248,.1)" strokeWidth="18" strokeLinecap="round" />
+              <path d="M130,260 A150,150 0 0 1 430,260" fill="none" stroke="var(--n20)" strokeWidth="18" strokeLinecap="round" data-garc />
+              <g data-needle><line x1="280" y1="132" x2="280" y2="98" stroke="var(--paper)" strokeWidth="4" strokeLinecap="round" /></g>
+              <text x="122" y="290" fontSize="12" textAnchor="middle" fill="var(--paper-45)" style={mono}>300</text>
+              <text x="438" y="290" fontSize="12" textAnchor="middle" fill="var(--paper-45)" style={mono}>900</text>
+              <text x="280" y="250" fontSize="52" fontWeight="500" textAnchor="middle" fill="var(--paper)" style={mono} data-score>650</text>
+              {Array.from({ length: 12 }, (_, k) => (
+                <circle key={k} cx={104 + k * 32} cy="340" r="8" fill="rgba(251,251,248,.12)" data-cm={k} />
+              ))}
+              <text x="104" y="374" fontSize="12" fill="var(--paper-45)" style={mono}>12 months of payments</text>
+              <text x="456" y="374" fontSize="12" textAnchor="end" fill="var(--danger-lift)" style={mono} data-miss opacity="0">missed: −58</text>
+            </g>
+
+            {/* 3. Budgeting */}
+            <g data-scene="2">
+              <text x="40" y="70" fontSize="13" fill="var(--paper-45)" style={mono}>MONTHLY INCOME</text>
+              <text x="40" y="112" fontSize="40" fontWeight="500" fill="var(--paper)" style={mono}>{inr(SALARY)}</text>
+              <rect data-bseg="0" x="40" y="170" width="480" height="64" rx="10" fill="var(--n50)" />
+              <rect data-bseg="1" x="40" y="170" width="0" height="64" rx="10" fill="var(--n200)" />
+              <rect data-bseg="2" x="40" y="170" width="0" height="64" rx="10" fill="var(--good-lift)" />
+              {[
+                { x: 40, t: 'Needs', s: 'rent, food, travel' },
+                { x: 284, t: 'Wants', s: 'outings, shopping' },
+                { x: 432, t: 'Savings', s: 'first, not last' },
+              ].map((l, k) => (
+                <g key={l.t} data-blab opacity="0" transform="translate(0 10)">
+                  <text x={l.x} y="276" fontSize="13" fill="var(--paper-60)" style={mono}>{l.t.toUpperCase()}</text>
+                  <text x={l.x} y="306" fontSize="22" fontWeight="500" fill="var(--paper)" style={mono} data-bv={k}>₹0</text>
+                  <text x={l.x} y="330" fontSize="13" fill="var(--paper-45)">{l.s}</text>
+                </g>
+              ))}
+            </g>
+
+            {/* 4. Investments: risk vs return */}
+            <g data-scene="3">
+              <line x1="70" y1="360" x2="520" y2="360" stroke="var(--paper-18)" />
+              <line x1="70" y1="60" x2="70" y2="360" stroke="var(--paper-18)" />
+              <text x="520" y="390" fontSize="12" textAnchor="end" fill="var(--paper-45)" style={mono}>MORE UPS AND DOWNS →</text>
+              <text x="58" y="70" fontSize="12" textAnchor="end" fill="var(--paper-45)" style={mono} transform="rotate(-90 58 70)">RETURN →</text>
+              <path d="M90,340 C200,300 330,200 500,80" fill="none" stroke="var(--n100)" strokeWidth="2" strokeDasharray="6 6" opacity=".6" data-rtrend data-draw />
+              {[
+                { x: 110, y: 330, t: 'Savings account' },
+                { x: 190, y: 300, t: 'Fixed deposit' },
+                { x: 280, y: 250, t: 'Gold' },
+                { x: 370, y: 180, t: 'Index fund' },
+                { x: 470, y: 100, t: 'Single stocks' },
+              ].map((d) => (
+                <g key={d.t} data-rdot opacity="0">
+                  <circle cx={d.x} cy={d.y} r="9" fill="var(--n100)" />
+                  <circle cx={d.x} cy={d.y} r="16" fill="none" stroke="var(--n100)" opacity=".35" />
+                  <text x={d.x + (d.x > 400 ? -22 : 22)} y={d.y + 5} fontSize="14" textAnchor={d.x > 400 ? 'end' : 'start'} fill="var(--paper)">{d.t}</text>
+                </g>
+              ))}
+            </g>
+
+            {/* 5. Banking: UPI route */}
+            <g data-scene="4">
+              <rect x="40" y="70" width="480" height="76" rx="14" fill="rgba(251,251,248,.05)" stroke="var(--paper-18)" />
+              <text x="64" y="102" fontSize="13" fill="var(--paper-45)" style={mono}>PAY</text>
+              <text x="64" y="128" fontSize="20" fill="var(--paper)">Chai Point</text>
+              <text x="496" y="124" fontSize="28" fontWeight="500" textAnchor="end" fill="var(--paper)" style={mono}>₹250</text>
+              <path d="M90,250 L470,250" stroke="rgba(251,251,248,.12)" strokeWidth="2" />
+              <path d="M90,250 L470,250" stroke="var(--n200)" strokeWidth="2" data-upath data-draw />
+              {['Your app', 'Your bank', 'UPI switch', 'Their bank'].map((n, k) => {
+                const x = 90 + k * (380 / 3);
+                return (
+                  <g key={n}>
+                    <circle cx={x} cy="250" r="16" fill="#16181d" stroke="var(--paper-18)" strokeWidth="2" data-unode={k} />
+                    <text x={x} y="296" fontSize="13" textAnchor="middle" fill="var(--paper-60)">{n}</text>
+                  </g>
+                );
+              })}
+              <circle cx="90" cy="250" r="6" fill="var(--paper)" data-upkt opacity="0" />
+              <g data-udone opacity="0">
+                <rect x="190" y="326" width="180" height="46" rx="23" fill="rgba(110,201,152,.14)" stroke="var(--good-lift)" />
+                <text x="280" y="355" fontSize="15" textAnchor="middle" fill="var(--good-lift)" style={mono}>✓ Paid · 2 sec</text>
+              </g>
+            </g>
+
+            {/* 6. Credit & debt: minimum payments */}
+            <g data-scene="5">
+              <text x="40" y="58" fontSize="13" fill="var(--paper-45)" style={mono}>₹20,000 ON A CARD · MINIMUM ONLY</text>
+              <line x1="40" y1="300" x2="520" y2="300" stroke="var(--paper-18)" />
+              <path d={linePath(CARD.pts, 40, 520, 300, 90, 20_000)} fill="none" stroke="var(--n2000)" strokeWidth="3" data-cline data-draw />
+              <text x="40" y="322" fontSize="12" fill="var(--paper-45)" style={mono}>month 0</text>
+              <text x="520" y="322" fontSize="12" textAnchor="end" fill="var(--paper-45)" style={mono}>month 60</text>
+              <text x="40" y="364" fontSize="13" fill="var(--paper-60)" style={mono}>INTEREST PAID</text>
+              <text x="40" y="394" fontSize="24" fontWeight="500" fill="var(--danger-lift)" style={mono} data-cint>₹0</text>
+              <text x="520" y="364" fontSize="13" textAnchor="end" fill="var(--paper-60)" style={mono}>STILL OWED</text>
+              <text x="520" y="394" fontSize="24" fontWeight="500" textAnchor="end" fill="var(--paper)" style={mono} data-cleft>₹20,000</text>
+            </g>
+
+            {/* 7. Money math: compounding */}
+            <g data-scene="6">
+              <text x="40" y="58" fontSize="13" fill="var(--paper-45)" style={mono} data-myr>Year 0</text>
+              <text x="40" y="98" fontSize="40" fontWeight="500" fill="var(--paper)" style={mono} data-mval>₹10,000</text>
+              <line x1="40" y1="370" x2="520" y2="370" stroke="var(--paper-18)" />
+              <path d={linePath(SIMPLE, 40, 520, 370, 130, COMP[30])} fill="none" stroke="var(--paper-45)" strokeWidth="2" strokeDasharray="4 6" data-msimp data-draw />
+              <path d={linePath(COMP, 40, 520, 370, 130, COMP[30])} fill="none" stroke="var(--good-lift)" strokeWidth="3.5" data-mcomp data-draw />
+              <text x="500" y="128" fontSize="12" textAnchor="end" fill="var(--good-lift)" style={mono}>interest on interest</text>
+              <text x="520" y="318" fontSize="12" textAnchor="end" fill="var(--paper-45)" style={mono}>interest on ₹10,000 only</text>
+              <text x="40" y="398" fontSize="12" fill="var(--paper-45)" style={mono}>12% a year, 30 years</text>
+            </g>
+
+            {/* 8. Investing basics */}
+            <g data-scene="7">
+              <line x1="40" y1="350" x2="520" y2="350" stroke="var(--paper-18)" />
+              <path d={linePath(MARKET, 40, 520, 350, 70, Math.max(...MARKET) * 1.05)} fill="none" stroke="var(--paper)" strokeWidth="2.5" strokeLinejoin="round" data-kmkt data-draw />
+              <path d={linePath(SAVINGS, 40, 520, 350, 70, Math.max(...MARKET) * 1.05)} fill="none" stroke="var(--good-lift)" strokeWidth="2" data-ksav data-draw />
+              <g data-kend opacity="0">
+                <text x="520" y={350 - ((350 - 70) * MARKET[40]) / (Math.max(...MARKET) * 1.05) - 14} fontSize="14" textAnchor="end" fill="var(--paper)">Index fund</text>
+                <text x="520" y={350 - ((350 - 70) * SAVINGS[40]) / (Math.max(...MARKET) * 1.05) - 12} fontSize="14" textAnchor="end" fill="var(--good-lift)">Savings account</text>
+              </g>
+              <text x="40" y="378" fontSize="12" fill="var(--paper-45)" style={mono}>10 years, illustrative</text>
+            </g>
+
+            {/* 9. Destinations: flow split */}
+            <g data-scene="8">
+              <circle cx="90" cy="210" r="34" fill="url(#fm-coin)" />
+              <text x="90" y="223" fontSize="34" fontWeight="800" textAnchor="middle" fill="rgba(80,48,4,.6)" style={disp}>₹</text>
+              {[
+                { t: 'Spend', y: 70, w: 22, c: 'var(--n50)' },
+                { t: 'Save', y: 140, w: 12, c: 'var(--good-lift)' },
+                { t: 'Invest', y: 210, w: 14, c: 'var(--n100)' },
+                { t: 'Lend', y: 280, w: 6, c: 'var(--n200)' },
+                { t: 'Give', y: 350, w: 5, c: 'var(--n2000)' },
+              ].map((d) => (
+                <g key={d.t}>
+                  <path d={`M124,210 C260,210 300,${d.y} 410,${d.y}`} fill="none" stroke={d.c} strokeWidth={d.w} strokeLinecap="round" opacity=".85" data-dflow data-draw />
+                  <text x="430" y={d.y + 6} fontSize="17" fill="var(--paper)" data-dlab opacity="0" transform="translate(-10 0)">{d.t}</text>
+                </g>
+              ))}
+            </g>
+
+            {/* 10. Planning */}
+            <g data-scene="9">
+              <path d="M40,330 L520,330" stroke="var(--paper-45)" strokeWidth="2" data-paxis data-draw />
+              <text x="40" y="358" fontSize="12" fill="var(--paper-45)" style={mono}>now</text>
+              <text x="520" y="358" fontSize="12" textAnchor="end" fill="var(--paper-45)" style={mono}>6 years</text>
+              {[
+                { t: 'Phone', when: '6 months', amt: 15_000, months: 6, x: 80 },
+                { t: 'Laptop', when: '2 years', amt: 60_000, months: 24, x: 200 },
+                { t: 'College fund', when: '6 years', amt: 300_000, months: 72, x: 360 },
+              ].map((g, k) => {
+                const mx = 40 + (480 * g.months) / 72; // true position on the 6-year axis
+                const cx = [40, 205, 370][k], cy = 196 - k * 62;
+                return (
+                  <g key={g.t} data-goal={k} opacity="0" transform="translate(0 20)">
+                    <line x1={mx} x2={mx} y1={cy + 104} y2="330" stroke="var(--n100)" strokeDasharray="3 4" />
+                    <circle cx={mx} cy="330" r="5" fill="var(--n100)" />
+                    <rect x={cx} y={cy} width="150" height="104" rx="12" fill="#1b1d22" stroke="var(--paper-18)" />
+                    <text x={cx + 16} y={cy + 26} fontSize="12" fill="var(--n100)" style={mono}>{g.when.toUpperCase()}</text>
+                    <text x={cx + 16} y={cy + 52} fontSize="17" fill="var(--paper)">{g.t}</text>
+                    <text x={cx + 16} y={cy + 86} fontSize="15" fill="var(--paper)" style={mono}>{inr(g.amt / g.months)}/mo</text>
+                  </g>
+                );
+              })}
+            </g>
+
+            {/* 11. Final challenge: a life */}
+            <g data-scene="10">
+              <text x="40" y="58" fontSize="13" fill="var(--paper-45)" style={mono}>NET WORTH, AGE 22 → 35</text>
+              <line x1="40" y1="330" x2="520" y2="330" stroke="var(--paper-18)" />
+              <path d="M40,320 C90,318 110,300 150,296 L170,312 C220,300 260,270 300,240 C330,220 350,226 370,240 C420,200 470,130 520,96" fill="none" stroke="var(--n200)" strokeWidth="3.5" data-lline data-draw />
+              {[
+                { x: 170, y: 312, t: 'First EMI' },
+                { x: 370, y: 240, t: 'Job loss: savings hold' },
+                { x: 500, y: 110, t: '10 years of investing' },
+              ].map((e, k) => (
+                <g key={e.t} data-lev={k} opacity="0" transform="translate(0 8)">
+                  <circle cx={e.x} cy={e.y} r="6" fill="var(--paper)" />
+                  <text x={e.x + (k === 2 ? -12 : 0)} y={e.y - 18} fontSize="13" textAnchor={k === 2 ? 'end' : 'middle'} fill="var(--paper)">{e.t}</text>
+                </g>
+              ))}
+              <text x="40" y="358" fontSize="12" fill="var(--paper-45)" style={mono}>22</text>
+              <text x="520" y="358" fontSize="12" textAnchor="end" fill="var(--paper-45)" style={mono}>35</text>
+            </g>
+          </svg>
+        </div>
+
+        {/* ---------- progress rail ---------- */}
+        <ol className={styles.rail} data-chrome data-rail aria-hidden="true">
+          {JOURNEYS.map((j, i) => (
+            <li key={j.id}>
+              <span className={styles.railFill} data-rail-fill={i} style={{ background: journeyColorVar(j) }} />
+            </li>
+          ))}
+        </ol>
+
+        {/* ---------- finale ---------- */}
+        <div className={styles.finale} data-finale>
+          <h2 className={styles.finaleH}>Now you see how money moves.</h2>
+          <p className={styles.finaleP}>Eleven short experiences. You make the choices and watch what they cost.</p>
+          <button className={styles.cta} onClick={start}>Start your first lesson</button>
+        </div>
+      </div>
     </section>
   );
 }

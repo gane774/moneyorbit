@@ -38,6 +38,7 @@
      system holds: red still means cost, indigo still means principal. */
   --danger-lift:#E4897A;   /* 6.70:1 on the dark verdict surface */
   --indigo-lift:#3D4490;   /* paper text on it: 8.34:1            */
+  --good-lift:#6EC998;     /* --good, lifted for dark surfaces     */
 
   /* derived: dark-screen surface (tint of --ink, not a new hue) */
   --ink-surface:#1B1E14;
