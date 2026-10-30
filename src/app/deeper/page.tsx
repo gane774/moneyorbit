@@ -34,7 +34,7 @@ export default function Deeper() {
       <p className="body-s" style={{ marginTop: 0, marginBottom: 22 }}>
         The core run stays at about 45 minutes on purpose. These are the topics
         that would have made it longer without making it clearer. None of them
-        are written yet — they are listed so you can see what is coming.
+        are written yet. They are listed so you can see what is coming.
       </p>
 
       {TOPICS.map((x, i) => (

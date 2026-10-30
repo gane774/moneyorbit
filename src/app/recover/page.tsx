@@ -74,7 +74,7 @@ export default function Recover() {
             <div className="verdict" style={{ marginTop: 16 }}>
               <div className="vt">No match.</div>
               <div className="vb">
-                That username and contact do not go together. Check both — and if
+                That username and contact do not go together. Check both, and if
                 you are not sure which contact you used, try the other one.
               </div>
             </div>

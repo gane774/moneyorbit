@@ -30,7 +30,7 @@ export default function StatementTool() {
       <div className="kicker" style={{ color: 'var(--ink-35)' }}>Tools · fictional statement</div>
       <h1 className="h-mid" style={{ marginBottom: 8 }}>Bank statement explorer</h1>
       <p className="body-s" style={{ marginTop: 0, marginBottom: 16 }}>
-        One invented month. Read it before you tap reveal — see how many charges
+        One invented month. Read it before you tap reveal and see how many charges
         you would have noticed on your own.
       </p>
 
@@ -87,7 +87,7 @@ export default function StatementTool() {
           </div>
           <div className="vb" style={{ marginBottom: 8 }}>
             Auto-renewals, a fee for using the wrong ATM, and a late charge. None
-            of them announce themselves — they just sit between the groceries.
+            of them announce themselves. They just sit between the groceries.
           </div>
           {s.recurring.length > 0 && (
             <div className="vb">

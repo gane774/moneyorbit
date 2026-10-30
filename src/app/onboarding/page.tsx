@@ -146,7 +146,7 @@ export default function Onboarding() {
               <h1 className="h-big">Where can we reach you?</h1>
               <p className="body-s">
                 Email or phone, whichever you actually use. We use it to save your
-                progress — nothing else.
+                progress. Nothing else.
               </p>
 
               <div className="field" style={{ marginTop: 22 }}>

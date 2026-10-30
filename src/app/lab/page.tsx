@@ -12,7 +12,7 @@ const TOOLS = [
   { id: 'compound',  name: 'Compounding',       blurb: 'One amount, left alone, over years.' },
   { id: 'sip',       name: 'Monthly investing', blurb: 'A fixed amount every month, compounding as it goes.' },
   { id: 'inflation', name: 'Inflation',         blurb: 'What money you have today will actually buy later.' },
-  { id: 'card',      name: 'Credit card',       blurb: 'How long a balance takes to clear — and when it never does.' },
+  { id: 'card',      name: 'Credit card',       blurb: 'How long a balance takes to clear, and when it never does.' },
 ];
 
 export default function Lab() {
@@ -30,7 +30,7 @@ export default function Lab() {
       <div className="kicker" style={{ color: 'var(--ink-35)' }}>Money Lab</div>
       <h1 className="h-mid" style={{ marginBottom: 8 }}>Play with the numbers.</h1>
       <p className="body-s" style={{ marginTop: 0, marginBottom: 20 }}>
-        No lesson, no right answer. Everything here is a worked example — real
+        No lesson, no right answer. Everything here is a worked example with real
         rates and terms vary, and nothing recommends a product.
       </p>
 
@@ -52,7 +52,7 @@ export default function Lab() {
 
       <button className="labCard" onClick={() => router.push('/lab/budget')}>
         <div className="lt">Budget simulator</div>
-        <div className="lb">Your own income, your own categories — see what the plan actually means.</div>
+        <div className="lb">Your own income, your own categories. See what the plan actually means.</div>
       </button>
       <button className="labCard" onClick={() => router.push('/lab/statement')}>
         <div className="lt">Bank statement explorer</div>

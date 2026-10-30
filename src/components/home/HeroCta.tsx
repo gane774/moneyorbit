@@ -15,7 +15,7 @@ import { resolveStartDestination } from '@/lib/startDestination';
  */
 export default function HeroCta() {
   const router = useRouter();
-  const [label, setLabel] = useState('Start your MoneyOrbit');
+  const [label, setLabel] = useState('Start your first lesson');
 
   useEffect(() => { setLabel(resolveStartDestination().label); }, []);
 

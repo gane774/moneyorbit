@@ -40,7 +40,7 @@ export default function Complete() {
       <div className="kicker" style={{ color: 'var(--ink-35)' }}>You finished</div>
       <h1 className="h-big" style={{ marginBottom: 12 }}>You understand the system.</h1>
       <p className="body-s" style={{ marginTop: 0, marginBottom: 26 }}>
-        Not every answer — nobody has those. But you have seen how the pieces
+        Not every answer. Nobody has those. But you have seen how the pieces
         connect, and you made the decisions yourself rather than reading about them.
       </p>
 
@@ -66,7 +66,7 @@ export default function Complete() {
       <button className="labCard" onClick={() => router.push('/lab')}>
         <div className="lt">Money Lab</div>
         <div className="lb">
-          Play with the numbers directly — a life to simulate, loans and
+          Play with the numbers directly: a life to simulate, loans and
           compounding to push around. No lesson attached.
         </div>
       </button>

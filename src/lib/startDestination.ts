@@ -18,7 +18,7 @@ export function resolveStartDestination(): { href: string; label: string } {
 
   // No identity yet: onboarding is the only sensible first step.
   if (!p.username) {
-    return { href: '/onboarding', label: 'Start your MoneyOrbit' };
+    return { href: '/onboarding', label: 'Start your first lesson' };
   }
 
   // Only count journeys this student can actually open — J6 and J8 are gated
@@ -40,6 +40,6 @@ export function resolveStartDestination(): { href: string; label: string } {
   const isMidway = Boolean(p.resume[firstUnfinished.slug]) || p.completed.length > 0;
   return {
     href: `/learn/${firstUnfinished.slug}`,
-    label: isMidway ? `Continue — ${firstUnfinished.title}` : 'Start your MoneyOrbit',
+    label: isMidway ? `Continue: ${firstUnfinished.title}` : 'Start your first lesson',
   };
 }

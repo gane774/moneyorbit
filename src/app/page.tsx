@@ -10,7 +10,7 @@ export default function Landing() {
   return (
     <>
       <section className="hero">
-        <div className="hero-mark rise"><i aria-hidden="true" />MoneyOrbit</div>
+        <div className="hero-mark rise">MoneyOrbit</div>
 
         <h1 className="hero-h rise" style={{ '--d': '80ms' } as React.CSSProperties}>
           Nobody teaches you what money <em>actually</em> does.
@@ -18,7 +18,7 @@ export default function Landing() {
 
         <p className="hero-p rise" style={{ '--d': '180ms' } as React.CSSProperties}>
           {TOTAL_JOURNEYS} short experiences, about {TOTAL_MINUTES} minutes in total.
-          You will not read a textbook — you will make decisions and watch what they cost.
+          You will not read a textbook. You will make decisions and watch what they cost.
         </p>
 
         <div className="hero-cta rise" style={{ '--d': '280ms' } as React.CSSProperties}>

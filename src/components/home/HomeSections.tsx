@@ -89,7 +89,7 @@ const UNTAUGHT = [
 const MYTHS = [
   { myth: 'Higher return means a better investment.', reality: 'A higher potential return also widens the range of bad outcomes. The two arrive together.' },
   { myth: 'Lower EMI means a cheaper loan.', reality: 'The monthly figure is not the price. Total repayment is, and a smaller EMI usually raises it.' },
-  { myth: "Mutual funds can't lose money.", reality: 'They hold real assets, so they rise and fall with them. Over long periods they have tended to grow — that is not a guarantee.' },
+  { myth: "Mutual funds can't lose money.", reality: 'They hold real assets, so they rise and fall with them. Over long periods they have tended to grow, but that is not a guarantee.' },
   { myth: 'You need to be good at maths to understand money.', reality: 'Almost all of it is addition and patience. Understanding the idea matters far more than the arithmetic.' },
 ];
 
@@ -208,7 +208,7 @@ export default function HomeSections() {
       <section className={styles.sec}>
         <div className={styles.kicker}>One question</div>
         <h2 className={styles.h2}>You need {inr(LOAN_PRINCIPAL)}. Which loan do you take?</h2>
-        <p className={styles.lede}>Pick one. No wrong answer yet — just pick the one that looks better.</p>
+        <p className={styles.lede}>Pick one. No wrong answer yet. Just pick the one that looks better.</p>
 
         <div className={styles.opts} role="group" aria-label="Choose a loan">
           <button
@@ -235,15 +235,15 @@ export default function HomeSections() {
           <div className={styles.reveal}>
             <div className={styles.revealTitle}>
               {picked === 'long'
-                ? 'Option B is easier every month — and costs more in the end.'
+                ? 'Option B is easier every month, and costs more in the end.'
                 : 'Option A is the harder monthly payment, and the cheaper loan.'}
             </div>
             <div className={styles.revealRow}>
-              <span>Option A — {inr(short.emi)}/mo for {SHORT_YEARS} years</span>
+              <span>Option A: {inr(short.emi)}/mo for {SHORT_YEARS} years</span>
               <b>{inr(short.totalPaid)}</b>
             </div>
             <div className={styles.revealRow}>
-              <span>Option B — {inr(long.emi)}/mo for {LONG_YEARS} years</span>
+              <span>Option B: {inr(long.emi)}/mo for {LONG_YEARS} years</span>
               <b>{inr(long.totalPaid)}</b>
             </div>
             <p className={styles.revealPunch}>
@@ -297,7 +297,7 @@ export default function HomeSections() {
             {TOTAL_JOURNEYS} experiences. About {TOTAL_MINUTES} minutes. You make the decisions
             and watch what they cost — before it is your actual money.
           </p>
-          <button className={styles.closeBtn} onClick={go}>Start your MoneyOrbit</button>
+          <button className={styles.closeBtn} onClick={go}>Start your first lesson</button>
           <div className={styles.closeSub}>No payment. Nothing to install.</div>
         </div>
       </section>

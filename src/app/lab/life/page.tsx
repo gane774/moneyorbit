@@ -81,7 +81,7 @@ export default function LifeSim() {
 
           <p className="body-s" style={{ marginTop: 0 }}>
             There is no winning score here. A run that ends with more money but
-            three forced loans is not better than one that ends with less and none —
+            three forced loans is not better than one that ends with less and none,
             which is the whole reason this shows what happened rather than ranking you.
           </p>
 

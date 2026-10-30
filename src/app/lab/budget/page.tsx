@@ -105,7 +105,7 @@ export default function BudgetTool() {
         onClick={() => setLines(DEFAULT_LINES)}>Reset</button>
 
       <p style={{ marginTop: 20, fontSize: 12.5, color: 'var(--ink-60)', fontStyle: 'italic', lineHeight: 1.5 }}>
-        Nothing here is saved or sent anywhere — it stays in this browser tab.
+        Nothing here is saved or sent anywhere. It stays in this browser tab.
       </p>
     </main>
   );
