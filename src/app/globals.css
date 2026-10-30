@@ -502,6 +502,11 @@ input[type=range]:focus-visible::-moz-range-thumb{outline:2px solid var(--indigo
 :root{--ease-out:cubic-bezier(.22,1,.36,1)}
 
 html{scroll-behavior:smooth}
+/* Lenis takes over smoothing on the landing page; native smooth scrolling
+   would fight it. These are the rules Lenis itself recommends. */
+html.lenis,html.lenis body{height:auto}
+.lenis.lenis-smooth{scroll-behavior:auto!important}
+.lenis.lenis-stopped{overflow:hidden}
 
 /* Film grain: breaks the flat-vector feel of the canvas. Fixed and
    pointer-events:none so it never affects layout or clicks. */
@@ -525,8 +530,20 @@ p{text-wrap:pretty}
 /* ---------- landing hero ---------- */
 
 .hero{
-  min-height:100svh;display:flex;flex-direction:column;justify-content:center;
-  max-width:760px;margin:0 auto;padding:48px 24px 64px;
+  position:relative;isolation:isolate;overflow:hidden;
+  min-height:100svh;display:grid;align-items:center;
+  max-width:1240px;margin:0 auto;padding:48px 24px 64px;
+}
+.hero-copy{position:relative;z-index:1;max-width:620px}
+/* The orbit sits to the right on wide screens and behind the top of the
+   copy on phones, where it is dimmed so the headline stays readable. */
+.hero-orbit{position:absolute;z-index:0;inset:2% -4% 2% 48%;pointer-events:none}
+.hero-orbit canvas{display:block;width:100%!important;height:100%!important;opacity:0;transition:opacity .9s ease}
+.hero-orbit[data-ready] canvas{opacity:1}
+@media(max-width:820px){
+  .hero{align-items:end;padding-top:0}
+  .hero-orbit{inset:0 -20% 52% -20%}
+  .hero-copy{padding-top:44svh}
 }
 .hero-mark{
   margin-bottom:44px;

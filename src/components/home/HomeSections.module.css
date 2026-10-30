@@ -199,35 +199,49 @@
 @media(max-width:640px){.myths{grid-template-columns:1fr}}
 
 .myth{
-  position:relative;
-  text-align:left;
-  border:1.5px solid var(--ink-12);
-  border-radius:12px;
-  padding:20px;
-  min-height:150px;
-  background:var(--paper);
-  cursor:pointer;
-  font:inherit;
-  color:inherit;
-  transition:border-color .2s,background .2s;
+  position:relative;text-align:left;padding:0;border:none;background:none;
+  font:inherit;color:inherit;cursor:pointer;perspective:1100px;border-radius:12px;
 }
-.myth[aria-pressed="true"]{border-color:var(--good);background:rgba(46,122,87,.05)}
+.mythCard{
+  display:grid;transform-style:preserve-3d;
+  transition:transform .7s cubic-bezier(.22,1,.36,1);
+}
+.myth[aria-pressed="true"] .mythCard{transform:rotateY(180deg)}
+.mythFace{
+  grid-area:1/1;display:flex;flex-direction:column;
+  border:1.5px solid var(--ink-12);border-radius:12px;padding:20px;min-height:150px;
+  background:var(--paper);backface-visibility:hidden;-webkit-backface-visibility:hidden;
+}
+.mythBack{transform:rotateY(180deg);border-color:var(--good);background:#F3F7F2}
 .mythTag{
-  font-family:var(--font-mono);
-  font-size:10px;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  margin-bottom:9px;
-  color:var(--danger);
+  font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:9px;color:var(--danger);
 }
-.myth[aria-pressed="true"] .mythTag{color:var(--good)}
+.mythBack .mythTag{color:var(--good)}
 .mythText{font-size:15.5px;line-height:1.45}
-.mythFlip{
-  margin-top:12px;
-  font-family:var(--font-mono);
-  font-size:11px;
-  color:var(--ink-35);
-}
+.mythFlip{margin-top:auto;padding-top:12px;font-family:var(--font-mono);font-size:11px;color:var(--ink-35)}
+
+/* ---------- loan cost bars ---------- */
+.bars{margin:18px 0 4px;display:grid;gap:10px}
+.barRow{display:grid;grid-template-columns:18px 1fr;align-items:center;gap:10px}
+.barKey{font-family:var(--font-mono);font-size:12px;color:var(--ink-60)}
+.barTrack{display:flex;height:14px;gap:2px}
+.barPrin,.barInt{display:block;height:100%;transform-origin:left;animation:grow .9s cubic-bezier(.22,1,.36,1) both}
+.barPrin{background:var(--indigo);border-radius:4px 0 0 4px}
+.barInt{background:var(--danger);border-radius:0 4px 4px 0;animation-delay:.55s}
+@keyframes grow{from{transform:scaleX(0)}to{transform:none}}
+.barLegend{display:flex;gap:18px;font-size:12.5px;color:var(--ink-60);margin-top:2px}
+.barLegend span{display:flex;align-items:center;gap:7px}
+.barLegend i{width:10px;height:10px;border-radius:2px;animation:none}
+
+/* ---------- journey map, scroll-lit ---------- */
+.map{position:relative}
+.stop{transition:background .35s,border-color .35s,color .35s}
+.stopDot{transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s}
+.map[data-scrub] .stop:not([data-lit]){background:transparent}
+.map[data-scrub] .stop:not([data-lit]) .stopDot{opacity:.25;transform:scale(.6)}
+.map[data-scrub] .stop:not([data-lit]) .stopName{color:var(--ink-35)}
+.stop[data-lit] .stopDot{transform:scale(1.25)}
 
 /* ---------- closing ---------- */
 
@@ -275,15 +289,16 @@
 /* ---------- polish: press feedback, pointer-only hover ---------- */
 
 .opt,.myth{transition:border-color .18s,transform .16s cubic-bezier(.22,1,.36,1),background .2s}
-.opt:active,.myth:active,.closeBtn:active{transform:scale(.98)}
+.opt:active,.closeBtn:active{transform:scale(.98)}
 .closeBtn{transition:transform .16s cubic-bezier(.22,1,.36,1),opacity .18s}
 .rowQ{transition:color .18s}
 @media(hover:hover) and (pointer:fine){
-  .myth:hover{border-color:var(--ink-35)}
+  .myth:hover .mythFace{border-color:var(--ink-35)}
   .row:hover .rowQ{color:var(--indigo)}
   .closeBtn:hover{opacity:.9}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .rowBody,.rowMark,.opt,.myth,.closeBtn{transition:none}
+  .rowBody,.rowMark,.opt,.mythCard,.closeBtn,.stop,.stopDot{transition:none}
+  .barPrin,.barInt{animation:none}
 }

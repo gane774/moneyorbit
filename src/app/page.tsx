@@ -2,6 +2,8 @@ import { TOTAL_JOURNEYS, TOTAL_MINUTES } from '@/content/journeys';
 import FlowOfMoney from '@/components/FlowOfMoney';
 import HeroCta from '@/components/home/HeroCta';
 import HomeSections from '@/components/home/HomeSections';
+import HeroOrbit from '@/components/home/HeroOrbit';
+import LandingMotion from '@/components/home/LandingMotion';
 
 /** Section 3: static hero first (light), then the animation (dark),
  *  which resolves into its own CTA. The light-dark-light transition
@@ -9,7 +11,10 @@ import HomeSections from '@/components/home/HomeSections';
 export default function Landing() {
   return (
     <>
+      <LandingMotion />
       <section className="hero">
+        <HeroOrbit />
+        <div className="hero-copy">
         <div className="hero-mark rise">MoneyOrbit</div>
 
         <h1 className="hero-h rise" style={{ '--d': '80ms' } as React.CSSProperties}>
@@ -28,6 +33,7 @@ export default function Landing() {
         <p className="hero-hint rise" style={{ '--d': '420ms' } as React.CSSProperties}>
           Scroll to see where money goes
         </p>
+        </div>
       </section>
 
       <FlowOfMoney />

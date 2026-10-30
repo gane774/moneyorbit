@@ -154,9 +154,9 @@ export default function HomeSections() {
     <div className={styles.wrap}>
       {/* ---------------- Section 15 ---------------- */}
       <section className={styles.sec}>
-        <div className={styles.kicker}>What can go wrong</div>
-        <h2 className={styles.h2}>Most money mistakes are just things nobody explained.</h2>
-        <p className={styles.lede}>
+        <div className={styles.kicker} data-reveal>What can go wrong</div>
+        <h2 className={styles.h2} data-reveal>Most money mistakes are just things nobody explained.</h2>
+        <p className={styles.lede} data-reveal>
           Not carelessness. Four ordinary gaps, and what each one actually costs.
         </p>
         <Disclosure items={CONSEQUENCES} idPrefix="cons" />
@@ -164,28 +164,28 @@ export default function HomeSections() {
 
       {/* ---------------- Section 17 ---------------- */}
       <section className={styles.sec}>
-        <div className={styles.kicker}>Things nobody teaches you</div>
-        <h2 className={styles.h2}>Five things that are true and sound wrong.</h2>
-        <p className={styles.lede}>Open any one of them.</p>
+        <div className={styles.kicker} data-reveal>Things nobody teaches you</div>
+        <h2 className={styles.h2} data-reveal>Five things that are true and sound wrong.</h2>
+        <p className={styles.lede} data-reveal>Open any one of them.</p>
         <Disclosure items={UNTAUGHT} idPrefix="unt" />
       </section>
 
       {/* ---------------- Section 16 ---------------- */}
       <section className={styles.sec}>
-        <div className={styles.kicker}>How long this takes</div>
-        <h2 className={styles.h2}>You are about {TOTAL_MINUTES} minutes away.</h2>
-        <p className={styles.lede}>
+        <div className={styles.kicker} data-reveal>How long this takes</div>
+        <h2 className={styles.h2} data-reveal>You are about {TOTAL_MINUTES} minutes away.</h2>
+        <p className={styles.lede} data-reveal>
           Not a course you have to finish over months. {TOTAL_JOURNEYS} short experiences,
           in order, each one building on the last. You can do it in a sitting.
         </p>
 
         <div className={styles.mapMeta}>
           <div className={styles.mapStat}>
-            <b>{TOTAL_JOURNEYS}</b>
+            <b data-count={TOTAL_JOURNEYS}>{TOTAL_JOURNEYS}</b>
             <span>experiences</span>
           </div>
           <div className={styles.mapStat}>
-            <b>~{TOTAL_MINUTES}</b>
+            <b data-count={TOTAL_MINUTES} data-prefix="~">~{TOTAL_MINUTES}</b>
             <span>minutes total</span>
           </div>
           <div className={styles.mapStat}>
@@ -194,7 +194,7 @@ export default function HomeSections() {
           </div>
         </div>
 
-        <ol className={styles.map}>
+        <ol className={styles.map} data-map>
           {JOURNEYS.map((j, i) => (
             <li key={j.id} className={styles.stop}>
               <span className={styles.stopDot} style={{ background: journeyColorVar(j) }} />
@@ -207,9 +207,9 @@ export default function HomeSections() {
 
       {/* ---------------- Section 18 ---------------- */}
       <section className={styles.sec}>
-        <div className={styles.kicker}>One question</div>
-        <h2 className={styles.h2}>You need {inr(LOAN_PRINCIPAL)}. Which loan do you take?</h2>
-        <p className={styles.lede}>Pick one. No wrong answer yet. Just pick the one that looks better.</p>
+        <div className={styles.kicker} data-reveal>One question</div>
+        <h2 className={styles.h2} data-reveal>You need {inr(LOAN_PRINCIPAL)}. Which loan do you take?</h2>
+        <p className={styles.lede} data-reveal>Pick one. No wrong answer yet. Just pick the one that looks better.</p>
 
         <div className={styles.opts} role="group" aria-label="Choose a loan">
           <button
@@ -247,8 +247,26 @@ export default function HomeSections() {
               <span>Option B: {inr(long.emi)}/mo for {LONG_YEARS} years</span>
               <b>{inr(long.totalPaid)}</b>
             </div>
+            <div className={styles.bars} aria-hidden="true">
+              {([['A', short], ['B', long]] as const).map(([k, l]) => {
+                const max = Math.max(short.totalPaid, long.totalPaid);
+                return (
+                  <div key={k} className={styles.barRow}>
+                    <span className={styles.barKey}>{k}</span>
+                    <span className={styles.barTrack}>
+                      <span className={styles.barPrin} style={{ width: `${(LOAN_PRINCIPAL / max) * 100}%` }} />
+                      <span className={styles.barInt} style={{ width: `${((l.totalPaid - LOAN_PRINCIPAL) / max) * 100}%` }} />
+                    </span>
+                  </div>
+                );
+              })}
+              <div className={styles.barLegend}>
+                <span><i className={styles.barPrin} />What you borrowed</span>
+                <span><i className={styles.barInt} />Interest</span>
+              </div>
+            </div>
             <p className={styles.revealPunch}>
-              Same {inr(LOAN_PRINCIPAL)} borrowed. Option B costs <b>{inr(extra)} more</b> —
+              Same {inr(LOAN_PRINCIPAL)} borrowed. Option B costs <b>{inr(extra)} more</b>,
               because you pay interest for three extra years. The monthly number is not the price.
             </p>
             <p className={styles.note}>
@@ -266,9 +284,9 @@ export default function HomeSections() {
 
       {/* ---------------- Section 19 ---------------- */}
       <section className={styles.sec}>
-        <div className={styles.kicker}>Myth vs reality</div>
-        <h2 className={styles.h2}>Four things most people believe.</h2>
-        <p className={styles.lede}>Tap each one to turn it over.</p>
+        <div className={styles.kicker} data-reveal>Myth vs reality</div>
+        <h2 className={styles.h2} data-reveal>Four things most people believe.</h2>
+        <p className={styles.lede} data-reveal>Tap each one to turn it over.</p>
 
         <div className={styles.myths}>
           {MYTHS.map((m, i) => {
@@ -281,9 +299,18 @@ export default function HomeSections() {
                 aria-pressed={on}
                 onClick={() => toggleMyth(i)}
               >
-                <div className={styles.mythTag}>{on ? 'Reality' : 'Myth'}</div>
-                <div className={styles.mythText}>{on ? m.reality : m.myth}</div>
-                <div className={styles.mythFlip}>{on ? 'Tap to flip back' : 'Tap to reveal'}</div>
+                <span className={styles.mythCard}>
+                  <span className={styles.mythFace} aria-hidden={on}>
+                    <span className={styles.mythTag}>Myth</span>
+                    <span className={styles.mythText}>{m.myth}</span>
+                    <span className={styles.mythFlip}>Tap to reveal</span>
+                  </span>
+                  <span className={`${styles.mythFace} ${styles.mythBack}`} aria-hidden={!on}>
+                    <span className={styles.mythTag}>Reality</span>
+                    <span className={styles.mythText}>{m.reality}</span>
+                    <span className={styles.mythFlip}>Tap to flip back</span>
+                  </span>
+                </span>
               </button>
             );
           })}
@@ -293,8 +320,8 @@ export default function HomeSections() {
       {/* ---------------- Close ---------------- */}
       <section className={styles.close}>
         <div className={styles.closeInner}>
-          <h2 className={styles.closeH}>You will not be an expert. You will not be guessing either.</h2>
-          <p className={styles.closeP}>
+          <h2 className={styles.closeH} data-reveal>You will not be an expert. You will not be guessing either.</h2>
+          <p className={styles.closeP} data-reveal>
             {TOTAL_JOURNEYS} experiences. About {TOTAL_MINUTES} minutes. You make the decisions
             and watch what they cost, before it is your actual money.
           </p>
